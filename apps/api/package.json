@@ -1,0 +1,35 @@
+{
+  "name": "@effect-bun-starter/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun build ./src/main.ts --outdir ./dist --target bun",
+    "dev": "bun --env-file=../../.env --watch ./src/main.ts",
+    "start": "bun --env-file=../../.env ./src/main.ts",
+    "test": "bun --env-file=../../.env vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@effect-bun-starter/auth": "workspace:*",
+    "@effect-bun-starter/database": "workspace:*",
+    "@effect-bun-starter/domain": "workspace:*",
+    "@effect/opentelemetry": "catalog:",
+    "@effect/platform-bun": "catalog:",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/api-logs": "^0.220.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.220.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.220.0",
+    "@opentelemetry/resources": "^2.9.0",
+    "@opentelemetry/sdk-logs": "^0.220.0",
+    "@opentelemetry/sdk-trace-base": "^2.9.0",
+    "@opentelemetry/sdk-trace-node": "^2.9.0",
+    "@opentelemetry/semantic-conventions": "^1.43.0",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@effect-bun-starter/typescript-config": "workspace:*",
+    "@effect/vitest": "catalog:",
+    "@types/bun": "catalog:",
+    "vitest": "catalog:"
+  }
+}

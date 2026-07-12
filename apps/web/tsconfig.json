@@ -1,0 +1,10 @@
+{
+  "extends": "@effect-bun-starter/typescript-config/browser.json",
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"],
+  "compilerOptions": {
+    "paths": {
+      "#/*": ["./src/*"],
+      "@/*": ["./src/*"]
+    }
+  }
+}

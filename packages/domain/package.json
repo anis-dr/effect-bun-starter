@@ -1,0 +1,18 @@
+{
+  "name": "@effect-bun-starter/domain",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "typecheck": "tsc --build && tsc --noEmit -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@effect-bun-starter/typescript-config": "workspace:*"
+  }
+}

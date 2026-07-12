@@ -1,0 +1,7 @@
+node_modules/
+.env
+.turbo/
+.motel-data/
+.tsbuild/
+dist/
+*.tsbuildinfo

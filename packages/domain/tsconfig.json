@@ -1,0 +1,12 @@
+{
+  "extends": "@effect-bun-starter/typescript-config/base.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "./.tsbuild",
+    "rootDir": "./src",
+    "tsBuildInfoFile": "./.tsbuild/tsconfig.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"]
+}

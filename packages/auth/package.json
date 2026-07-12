@@ -1,0 +1,29 @@
+{
+  "name": "@effect-bun-starter/auth",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "auth:generate": "bunx @better-auth/cli@latest generate --config src/auth-cli.ts --output src/schema/auth-schema.ts --yes && bun scripts/patch-generated-schema.ts",
+    "auth:generate:check": "bun run auth:generate && git diff --exit-code -- src/schema/auth-schema.ts",
+    "auth:info": "bunx @better-auth/cli@latest info --config src/auth-cli.ts",
+    "auth:secret": "bunx @better-auth/cli@latest secret",
+    "build": "tsc --build",
+    "test": "bun --env-file=../../.env vitest run",
+    "typecheck": "tsc --build && tsc --noEmit -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@effect-bun-starter/database": "workspace:*",
+    "better-auth": "^1.6.23",
+    "drizzle-orm": "catalog:",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@effect-bun-starter/typescript-config": "workspace:*",
+    "@effect/vitest": "catalog:",
+    "@types/bun": "catalog:",
+    "vitest": "catalog:"
+  }
+}

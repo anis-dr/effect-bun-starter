@@ -1,0 +1,9 @@
+{
+  "extends": "@effect-bun-starter/typescript-config/test.json",
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "references": [
+    { "path": "../../packages/auth" },
+    { "path": "../../packages/domain" },
+    { "path": "../../packages/database" }
+  ]
+}

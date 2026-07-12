@@ -1,0 +1,40 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**",
+        ".output/**",
+        ".tsbuild/**"
+      ]
+    },
+    "@effect-bun-starter/api#dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "@effect-bun-starter/web#dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "//#format": {},
+    "//#format:fix": {
+      "cache": false
+    },
+    "//#lint": {},
+    "//#lint:fix": {
+      "cache": false
+    },
+    "test": {
+      "dependsOn": ["^typecheck"],
+      "outputs": []
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "outputs": ["*.tsbuildinfo", ".tsbuild/**"]
+    }
+  }
+}
