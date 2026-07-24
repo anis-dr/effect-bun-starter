@@ -1,7 +1,0 @@
-{
-  "extends": "@effect-bun-starter/typescript-config/browser.json",
-  "compilerOptions": {
-    "types": ["react"]
-  },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
-}

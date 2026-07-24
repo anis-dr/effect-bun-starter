@@ -1,4 +1,9 @@
-import { Button } from "@effect-bun-starter/ui/components/button";
+import { AppShell } from "@astryxdesign/core/AppShell";
+import { Button } from "@astryxdesign/core/Button";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { useAtom, useAtomValue } from "@effect/atom-react";
 import { createFileRoute, useLoaderData } from "@tanstack/react-router";
 import { Effect } from "effect";
@@ -48,26 +53,30 @@ const Home = () => {
     .render();
 
   return (
-    <div className="p-8">
-      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-        {status}
-      </p>
-      <h1 className="mt-2 text-4xl font-bold">Effect Bun Starter Web</h1>
-      <p className="mt-4 text-lg">
-        Typed client connected through Effect Atom.
-      </p>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Loader API {serverHealth.status}
-      </p>
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <Button disabled={pingResult.waiting} onClick={() => void handlePing()}>
-          {pingResult.waiting ? "Pinging..." : "Ping API"}
-        </Button>
-        {pingMessage ? (
-          <p className="text-sm text-muted-foreground">{pingMessage}</p>
-        ) : null}
-      </div>
-    </div>
+    <AppShell contentPadding={6}>
+      <VStack gap={4} maxWidth={720}>
+        <Text color="secondary" type="label">
+          {status}
+        </Text>
+        <Heading level={1} textWrap="balance" type="display-2">
+          Effect Bun Starter Web
+        </Heading>
+        <Text type="large">Typed client connected through Effect Atom.</Text>
+        <Text color="secondary" type="supporting">
+          Loader API {serverHealth.status}
+        </Text>
+        <HStack align="center" gap={3} wrap="wrap">
+          <Button clickAction={handlePing} label="Ping API" variant="primary">
+            Ping API
+          </Button>
+          {pingMessage ? (
+            <Text color="secondary" type="supporting">
+              {pingMessage}
+            </Text>
+          ) : null}
+        </HStack>
+      </VStack>
+    </AppShell>
   );
 };
 

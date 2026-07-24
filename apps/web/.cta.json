@@ -2,7 +2,6 @@
   "projectName": "web",
   "mode": "file-router",
   "typescript": true,
-  "tailwind": true,
   "packageManager": "bun",
   "git": false,
   "install": true,

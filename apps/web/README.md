@@ -27,16 +27,7 @@ bun --bun run test
 
 ## Styling
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-### Removing Tailwind CSS
-
-If you prefer not to use Tailwind CSS:
-
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `bun install @tailwindcss/vite tailwindcss -D`
+This project uses [Astryx](https://github.com/facebook/astryx) with the neutral theme. Base and theme styles are imported from the published packages in `src/styles.css`; no styling build plugin is required.
 
 ## Deploy with Nitro
 

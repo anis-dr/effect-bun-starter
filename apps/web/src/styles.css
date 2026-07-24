@@ -1,1 +1,3 @@
-@import "@effect-bun-starter/ui/globals.css";
+@import "@astryxdesign/core/reset.css";
+@import "@astryxdesign/core/astryx.css";
+@import "@astryxdesign/theme-neutral/theme.css";

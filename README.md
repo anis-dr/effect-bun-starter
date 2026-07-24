@@ -55,7 +55,7 @@ Local services:
 - [OpenTelemetry](https://opentelemetry.io/) for API, server, and browser traces and logs
 - TypeScript 7 with [`@effect/tsgo`](https://www.npmjs.com/package/@effect/tsgo)
 - [Vitest](https://vitest.dev/) and `@effect/vitest` for tests
-- Tailwind CSS 4 and a shared React UI package
+- [Astryx](https://github.com/facebook/astryx) with its neutral theme for accessible React UI
 - OXC-based formatting and linting through Oxfmt and Ultracite
 - Nitro for the production web server output
 
@@ -71,8 +71,7 @@ packages/
 ├── auth/                Better Auth configuration and Effect adapter
 ├── database/            PostgreSQL layer, Drizzle schema, migrations
 ├── domain/              Shared Effect Schema and HttpApi contracts
-├── typescript-config/   Shared TypeScript project configurations
-└── ui/                  Shared React components and styles
+└── typescript-config/   Shared TypeScript project configurations
 ```
 
 The included Store schema, endpoint, and UI are intentionally small. They demonstrate the database → domain contract → API handler → web client path and can be replaced with your first domain feature.

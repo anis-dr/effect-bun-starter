@@ -22,6 +22,7 @@
   "type": "module",
   "scripts": {
     "build": "turbo build",
+    "astryx": "bun run --cwd apps/web astryx",
     "db:up": "docker compose up -d --wait database",
     "dev": "turbo dev",
     "format": "oxfmt --check .",
@@ -33,6 +34,7 @@
     "typecheck": "turbo typecheck"
   },
   "devDependencies": {
+    "@astryxdesign/cli": "0.1.8",
     "@effect/tsgo": "^0.19.0",
     "oxfmt": "^0.58.0",
     "oxlint": "^1.73.0",
