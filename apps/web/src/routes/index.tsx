@@ -9,12 +9,12 @@ import { createFileRoute, useLoaderData } from "@tanstack/react-router";
 import { Effect } from "effect";
 import { AsyncResult, AtomRegistry } from "effect/unstable/reactivity";
 
-import { DomainClient } from "#lib/domain-client";
+import { ApiClient } from "#lib/api-client";
 
-const healthAtom = DomainClient.query("system", "health", {
+const healthAtom = ApiClient.query("system", "health", {
   reactivityKeys: ["system"],
 });
-const pingAtom = DomainClient.mutation("system", "ping");
+const pingAtom = ApiClient.mutation("system", "ping");
 
 const loadServerHealth = () => {
   const registry = AtomRegistry.make();

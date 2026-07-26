@@ -1,4 +1,4 @@
-export { DomainApi } from "./api/domain-api.js";
+export { Api } from "./api/api.js";
 export { HealthResponse, PingResponse } from "./api/system-contract.js";
 export {
   StoreResponse,

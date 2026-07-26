@@ -1,4 +1,4 @@
-import { DomainApi } from "@effect-bun-starter/domain";
+import { Api } from "@effect-bun-starter/domain";
 import { Config, ConfigProvider, Effect } from "effect";
 import { FetchHttpClient } from "effect/unstable/http";
 import { AtomHttpApi } from "effect/unstable/reactivity";
@@ -15,11 +15,8 @@ const apiUrl = Effect.runSync(
   )
 );
 
-export class DomainClient extends AtomHttpApi.Service<DomainClient>()(
-  "DomainClient",
-  {
-    api: DomainApi,
-    baseUrl: apiUrl,
-    httpClient: FetchHttpClient.layer,
-  }
-) {}
+export class ApiClient extends AtomHttpApi.Service<ApiClient>()("ApiClient", {
+  api: Api,
+  baseUrl: apiUrl,
+  httpClient: FetchHttpClient.layer,
+}) {}

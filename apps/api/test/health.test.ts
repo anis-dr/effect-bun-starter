@@ -1,4 +1,4 @@
-import { DomainApi } from "@effect-bun-starter/domain";
+import { Api } from "@effect-bun-starter/domain";
 import * as BunHttpPlatform from "@effect/platform-bun/BunHttpPlatform";
 import * as BunServices from "@effect/platform-bun/BunServices";
 import { expect, it } from "@effect/vitest";
@@ -8,8 +8,8 @@ import { HttpApi, HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { HealthLive } from "../src/public/system/health-live.js";
 
-const systemGroup = DomainApi.groups.system as Extract<
-  (typeof DomainApi.groups)[keyof typeof DomainApi.groups],
+const systemGroup = Api.groups.system as Extract<
+  (typeof Api.groups)[keyof typeof Api.groups],
   { readonly identifier: "system" }
 >;
 const PlatformLive = Layer.mergeAll(
@@ -18,7 +18,7 @@ const PlatformLive = Layer.mergeAll(
   Etag.layer
 );
 const SystemApiLive = HttpApiBuilder.layer(
-  HttpApi.make("DomainApi").add(systemGroup)
+  HttpApi.make("Api").add(systemGroup)
 ).pipe(Layer.provide(HealthLive), Layer.provide(PlatformLive));
 
 it("serves the health response contract", async () => {
