@@ -1,4 +1,5 @@
 /* eslint-disable sort-keys */
+import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm/_relations";
 import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
 
@@ -11,7 +12,7 @@ export const user = pgTable("user", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
-    .$onUpdate(() => new Date())
+    .$onUpdate(() => sql`now()`)
     .notNull(),
 });
 
@@ -23,7 +24,7 @@ export const session = pgTable(
     token: text("token").notNull().unique(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
-      .$onUpdate(() => new Date())
+      .$onUpdate(() => sql`now()`)
       .notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
@@ -52,7 +53,7 @@ export const account = pgTable(
     password: text("password"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
-      .$onUpdate(() => new Date())
+      .$onUpdate(() => sql`now()`)
       .notNull(),
   },
   (table) => [index("account_userId_idx").on(table.userId)]
@@ -68,7 +69,7 @@ export const verification = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
-      .$onUpdate(() => new Date())
+      .$onUpdate(() => sql`now()`)
       .notNull(),
   },
   (table) => [index("verification_identifier_idx").on(table.identifier)]

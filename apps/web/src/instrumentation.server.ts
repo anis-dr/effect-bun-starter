@@ -5,21 +5,17 @@ import { resourceFromAttributes } from "@opentelemetry/resources";
 import { BatchLogRecordProcessor } from "@opentelemetry/sdk-logs";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
-import { Config, Effect } from "effect";
-
-const otelTraceProxyPath = "/api/otel/v1/traces";
-
-const isOtelTraceProxyPath = (url: string | undefined) =>
-  url
-    ? new URL(url, "http://localhost").pathname === otelTraceProxyPath
-    : false;
+import { Config, Effect, Option } from "effect";
 
 declare global {
-  // eslint-disable-next-line no-var
-  var __effectBunStarterWebOtelSdk: NodeSDK | undefined;
+  var __effectBunStarterWebOtelSdk: Option.Option<NodeSDK>;
 }
 
-if (!globalThis.__effectBunStarterWebOtelSdk) {
+if (!("__effectBunStarterWebOtelSdk" in globalThis)) {
+  globalThis.__effectBunStarterWebOtelSdk = Option.none();
+}
+
+if (Option.isNone(globalThis.__effectBunStarterWebOtelSdk)) {
   const otlpEndpoint = Effect.runSync(
     Config.string("OTEL_EXPORTER_OTLP_ENDPOINT").pipe(
       Config.withDefault("http://127.0.0.1:27686")
@@ -28,12 +24,11 @@ if (!globalThis.__effectBunStarterWebOtelSdk) {
   const otlpTraceUrl = `${otlpEndpoint}/v1/traces`;
   const otlpTraceEndpoint = new URL(otlpTraceUrl);
 
-  globalThis.__effectBunStarterWebOtelSdk = new NodeSDK({
+  const sdk = new NodeSDK({
     instrumentations: [
       getNodeAutoInstrumentations({
         "@opentelemetry/instrumentation-http": {
-          ignoreIncomingRequestHook: (request) =>
-            isOtelTraceProxyPath(request.url),
+          disableIncomingRequestInstrumentation: true,
           ignoreOutgoingRequestHook: (request) =>
             request.path === otlpTraceEndpoint.pathname &&
             request.host === otlpTraceEndpoint.host,
@@ -61,5 +56,6 @@ if (!globalThis.__effectBunStarterWebOtelSdk) {
     }),
   });
 
-  globalThis.__effectBunStarterWebOtelSdk.start();
+  globalThis.__effectBunStarterWebOtelSdk = Option.some(sdk);
+  sdk.start();
 }

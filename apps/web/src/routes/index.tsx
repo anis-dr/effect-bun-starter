@@ -6,7 +6,7 @@ import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
 import { useAtom, useAtomValue } from "@effect/atom-react";
 import { createFileRoute, useLoaderData } from "@tanstack/react-router";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import { AsyncResult, AtomRegistry } from "effect/unstable/reactivity";
 
 import { ApiClient } from "#lib/api-client";
@@ -18,25 +18,26 @@ const pingAtom = ApiClient.mutation("system", "ping");
 
 const loadServerHealth = () => {
   const registry = AtomRegistry.make();
-
-  return Effect.runPromise(
-    AtomRegistry.getResult(registry, healthAtom, {
-      suspendOnWaiting: true,
-    }).pipe(Effect.ensuring(Effect.sync(() => registry.dispose())))
+  const disposeRegistry = Effect.sync(function disposeRegistry() {
+    registry.dispose();
+  });
+  const health = AtomRegistry.getResult(registry, healthAtom, {
+    suspendOnWaiting: true,
+  }).pipe(
+    Effect.ensuring(disposeRegistry),
+    Effect.map((serverHealth) => ({ serverHealth }))
   );
+
+  return Effect.runPromise(health);
 };
 
 const Home = () => {
   const { serverHealth } = useLoaderData({ from: "/" });
   const healthResult = useAtomValue(healthAtom);
-  const [pingResult, ping] = useAtom(pingAtom, { mode: "promise" });
+  const [pingResult, ping] = useAtom(pingAtom);
 
-  const handlePing = async () => {
-    try {
-      await ping({});
-    } catch {
-      // Ping failures are rendered from pingResult.
-    }
+  const handlePing = () => {
+    ping({});
   };
 
   const status = AsyncResult.builder(healthResult)
@@ -46,11 +47,16 @@ const Home = () => {
     .render();
 
   const pingMessage = AsyncResult.builder(pingResult)
-    .onInitial(() => null)
-    .onWaiting(() => "Pinging...")
-    .onFailure(() => "Ping failed")
-    .onSuccess((result) => result.message)
+    .onInitial(() => Option.none<string>())
+    .onWaiting(() => Option.some("Pinging..."))
+    .onFailure(() => Option.some("Ping failed"))
+    .onSuccess((result) => Option.some(result.message))
     .render();
+  const renderedPingMessage = Option.isSome(pingMessage) && (
+    <Text color="secondary" type="supporting">
+      {pingMessage.value}
+    </Text>
+  );
 
   return (
     <AppShell contentPadding={6}>
@@ -69,11 +75,7 @@ const Home = () => {
           <Button clickAction={handlePing} label="Ping API" variant="primary">
             Ping API
           </Button>
-          {pingMessage ? (
-            <Text color="secondary" type="supporting">
-              {pingMessage}
-            </Text>
-          ) : null}
+          {renderedPingMessage}
         </HStack>
       </VStack>
     </AppShell>
@@ -82,5 +84,5 @@ const Home = () => {
 
 export const Route = createFileRoute("/")({
   component: Home,
-  loader: async () => ({ serverHealth: await loadServerHealth() }),
+  loader: loadServerHealth,
 });

@@ -6,8 +6,11 @@ export const HealthLive = HttpApiBuilder.group(Api, "system", (handlers) =>
   handlers
     .handle("health", () =>
       Effect.succeed({
-        service: "effect-bun-starter-api" as const,
-        status: "ok" as const,
+        service: "effect-bun-starter-api",
+        status: "ok",
+      } satisfies {
+        readonly service: "effect-bun-starter-api";
+        readonly status: "ok";
       }).pipe(
         Effect.tap(() => Effect.logInfo("system.health")),
         Effect.withSpan("system.health", {
@@ -18,7 +21,9 @@ export const HealthLive = HttpApiBuilder.group(Api, "system", (handlers) =>
       )
     )
     .handle("ping", () =>
-      Effect.succeed({ message: "pong" as const }).pipe(
+      Effect.succeed({
+        message: "pong",
+      } satisfies { readonly message: "pong" }).pipe(
         Effect.tap(() => Effect.logInfo("system.ping")),
         Effect.withSpan("system.ping", {
           attributes: {

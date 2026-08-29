@@ -9,22 +9,24 @@ import {
   WebTracerProvider,
 } from "@opentelemetry/sdk-trace-web";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
-import { Config, ConfigProvider, Effect } from "effect";
+import { Config, ConfigProvider, Effect, Option } from "effect";
 
 declare global {
-  // eslint-disable-next-line no-var
-  var __effectBunStarterWebClientOtelStarted: boolean | undefined;
+  var __effectBunStarterWebClientOtelStarted: Option.Option<true>;
 }
 
 const escapeRegExp = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const startBrowserTelemetry = () => {
-  if (globalThis.__effectBunStarterWebClientOtelStarted) {
+  if (!("__effectBunStarterWebClientOtelStarted" in globalThis)) {
+    globalThis.__effectBunStarterWebClientOtelStarted = Option.none();
+  }
+  if (Option.isSome(globalThis.__effectBunStarterWebClientOtelStarted)) {
     return;
   }
 
-  globalThis.__effectBunStarterWebClientOtelStarted = true;
+  globalThis.__effectBunStarterWebClientOtelStarted = Option.some(true);
 
   const configProvider = ConfigProvider.fromUnknown(import.meta.env);
 

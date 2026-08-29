@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { Config, Effect } from "effect";
+import { Config, Effect, Option } from "effect";
+import {
+  FetchHttpClient,
+  HttpClient,
+  HttpClientRequest,
+} from "effect/unstable/http";
 
 const getTraceUrl = () =>
   `${Effect.runSync(
@@ -14,44 +18,52 @@ type OTelTraceProxyRequest = {
   contentType: string;
 };
 
-const forwardOtelTraces = async (data: OTelTraceProxyRequest) => {
+const forwardOtelTraces = Effect.fn("OTel.forwardTraces")(function* (
+  data: OTelTraceProxyRequest
+) {
   if (!data.body) {
     return Response.json({ error: "Empty OTLP body" }, { status: 400 });
   }
 
-  const response = await fetch(getTraceUrl(), {
-    body: data.body,
-    headers: { "content-type": data.contentType },
-    method: "POST",
-  });
+  const client = yield* HttpClient.HttpClient;
+  const request = HttpClientRequest.post(getTraceUrl()).pipe(
+    HttpClientRequest.bodyText(data.body, data.contentType)
+  );
+  const response = yield* client.execute(request);
+  const body = yield* response.text;
+  const contentType = Option.getOrElse(
+    Option.fromUndefinedOr(response.headers["content-type"]),
+    () => "application/json"
+  );
 
-  return new Response(await response.text(), {
-    headers: {
-      "content-type":
-        response.headers.get("content-type") ?? "application/json",
-    },
+  return new Response(body, {
+    headers: { "content-type": contentType },
     status: response.status,
   });
-};
+});
 
 const methodNotAllowed = () =>
   Response.json({ error: "Method not allowed" }, { status: 405 });
-
-export const proxyOtelTraces = createServerFn({ method: "POST" })
-  .validator((data: OTelTraceProxyRequest) => data)
-  .handler(async ({ data }) => forwardOtelTraces(data));
 
 export const Route = createFileRoute("/api/otel/v1/traces")({
   server: {
     handlers: {
       GET: methodNotAllowed,
-      POST: async ({ request }) => {
-        return forwardOtelTraces({
-          body: await request.text(),
-          contentType:
-            request.headers.get("content-type") ?? "application/json",
-        });
-      },
+      POST: ({ request }) =>
+        Effect.runPromise(
+          Effect.promise(() => request.text()).pipe(
+            Effect.flatMap((body) =>
+              forwardOtelTraces({
+                body,
+                contentType: Option.getOrElse(
+                  Option.fromNullishOr(request.headers.get("content-type")),
+                  () => "application/json"
+                ),
+              })
+            ),
+            Effect.provide(FetchHttpClient.layer)
+          )
+        ),
     },
   },
 });
