@@ -20,4 +20,5 @@ export const auth = betterAuth({
     enabled: true,
   },
   secret: "schema-generation-secret-at-least-32-chars",
+  trustedOrigins: ["http://localhost:3000"],
 });

@@ -5,10 +5,15 @@ import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { FetchInstrumentation } from "@opentelemetry/instrumentation-fetch";
 import { resourceFromAttributes } from "@opentelemetry/resources";
 import {
-  SimpleSpanProcessor,
+  BatchSpanProcessor,
   WebTracerProvider,
 } from "@opentelemetry/sdk-trace-web";
-import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
+import {
+  ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
+  ATTR_SERVICE_NAME,
+  ATTR_SERVICE_NAMESPACE,
+  ATTR_SERVICE_VERSION,
+} from "@opentelemetry/semantic-conventions";
 import { Config, ConfigProvider, Effect, Option } from "effect";
 
 declare global {
@@ -42,13 +47,28 @@ export const startBrowserTelemetry = () => {
       Effect.provideService(ConfigProvider.ConfigProvider, configProvider)
     )
   ).replace(/\/$/, "");
+  const deploymentEnvironment = Effect.runSync(
+    Config.string("VITE_OTEL_DEPLOYMENT_ENVIRONMENT").pipe(
+      Config.withDefault("development"),
+      Effect.provideService(ConfigProvider.ConfigProvider, configProvider)
+    )
+  );
+  const serviceVersion = Effect.runSync(
+    Config.string("VITE_OTEL_SERVICE_VERSION").pipe(
+      Config.withDefault("0.0.0"),
+      Effect.provideService(ConfigProvider.ConfigProvider, configProvider)
+    )
+  );
 
   const provider = new WebTracerProvider({
     resource: resourceFromAttributes({
+      [ATTR_DEPLOYMENT_ENVIRONMENT_NAME]: deploymentEnvironment,
       [ATTR_SERVICE_NAME]: "effect-bun-starter-web-client",
+      [ATTR_SERVICE_NAMESPACE]: "effect-bun-starter",
+      [ATTR_SERVICE_VERSION]: serviceVersion,
     }),
     spanProcessors: [
-      new SimpleSpanProcessor(
+      new BatchSpanProcessor(
         new OTLPTraceExporter({
           url: traceUrl,
         })
@@ -67,6 +87,7 @@ export const startBrowserTelemetry = () => {
       new FetchInstrumentation({
         ignoreUrls: [traceUrl, resolvedTraceUrl, /\/__tsd\//],
         propagateTraceHeaderCorsUrls: [apiUrlPattern],
+        semconvStabilityOptIn: "http",
       }),
     ],
   });

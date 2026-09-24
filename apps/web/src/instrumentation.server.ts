@@ -4,7 +4,12 @@ import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { resourceFromAttributes } from "@opentelemetry/resources";
 import { BatchLogRecordProcessor } from "@opentelemetry/sdk-logs";
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
+import {
+  ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
+  ATTR_SERVICE_NAME,
+  ATTR_SERVICE_NAMESPACE,
+  ATTR_SERVICE_VERSION,
+} from "@opentelemetry/semantic-conventions";
 import { Config, Effect, Option } from "effect";
 
 declare global {
@@ -21,6 +26,14 @@ if (Option.isNone(globalThis.__effectBunStarterWebOtelSdk)) {
       Config.withDefault("http://127.0.0.1:27686")
     )
   ).replace(/\/$/, "");
+  const deploymentEnvironment = Effect.runSync(
+    Config.string("OTEL_DEPLOYMENT_ENVIRONMENT").pipe(
+      Config.withDefault("development")
+    )
+  );
+  const serviceVersion = Effect.runSync(
+    Config.string("OTEL_SERVICE_VERSION").pipe(Config.withDefault("0.0.0"))
+  );
   const otlpTraceUrl = `${otlpEndpoint}/v1/traces`;
   const otlpTraceEndpoint = new URL(otlpTraceUrl);
 
@@ -49,7 +62,10 @@ if (Option.isNone(globalThis.__effectBunStarterWebOtelSdk)) {
       }),
     ],
     resource: resourceFromAttributes({
+      [ATTR_DEPLOYMENT_ENVIRONMENT_NAME]: deploymentEnvironment,
       [ATTR_SERVICE_NAME]: "effect-bun-starter-web",
+      [ATTR_SERVICE_NAMESPACE]: "effect-bun-starter",
+      [ATTR_SERVICE_VERSION]: serviceVersion,
     }),
     traceExporter: new OTLPTraceExporter({
       url: otlpTraceUrl,

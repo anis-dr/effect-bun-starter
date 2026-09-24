@@ -6,7 +6,11 @@ import {
   trace,
 } from "@opentelemetry/api";
 import type { Span } from "@opentelemetry/api";
+import { logs, SeverityNumber } from "@opentelemetry/api-logs";
 import {
+  ATTR_EXCEPTION_MESSAGE,
+  ATTR_EXCEPTION_STACKTRACE,
+  ATTR_EXCEPTION_TYPE,
   ATTR_HTTP_REQUEST_METHOD,
   ATTR_HTTP_RESPONSE_STATUS_CODE,
   ATTR_HTTP_ROUTE,
@@ -19,6 +23,7 @@ import { Effect, Option, Schema } from "effect";
 import "./instrumentation.server";
 
 const tracer = trace.getTracer("effect-bun-starter-web");
+const logger = logs.getLogger("effect-bun-starter-web");
 const otelTraceProxyPath = "/api/otel/v1/traces";
 const middleware = createMiddleware();
 type RequestHandler = NonNullable<typeof middleware.options.server>;
@@ -37,7 +42,6 @@ function spanName(
   }
   return `HTTP ${method}`;
 }
-
 export const handleTracingRequest: RequestHandler = function ({
   handlerType,
   next,
@@ -100,12 +104,38 @@ export const handleTracingRequest: RequestHandler = function ({
             onNone: () => String(defect),
             onSome: (error) => error.message,
           });
-          const recordedException = Option.match(exception, {
-            onNone: () => message,
-            onSome: (error) => error,
+          const type = Option.match(exception, {
+            onNone: () => "UnknownError",
+            onSome: (error) => error.name,
           });
-          span.recordException(recordedException);
+          const attributes = {
+            [ATTR_EXCEPTION_MESSAGE]: message,
+            [ATTR_EXCEPTION_TYPE]: type,
+            [ATTR_HTTP_REQUEST_METHOD]: request.method,
+            [ATTR_URL_PATH]: pathname,
+          };
           span.setStatus({ code: SpanStatusCode.ERROR, message });
+          const stack = Option.flatMap(exception, (error) =>
+            Option.fromUndefinedOr(error.stack)
+          );
+          if (Option.isSome(stack)) {
+            logger.emit({
+              attributes: {
+                ...attributes,
+                [ATTR_EXCEPTION_STACKTRACE]: stack.value,
+              },
+              body: "web.request.failed",
+              severityNumber: SeverityNumber.ERROR,
+              severityText: "ERROR",
+            });
+          } else {
+            logger.emit({
+              attributes,
+              body: "web.request.failed",
+              severityNumber: SeverityNumber.ERROR,
+              severityText: "ERROR",
+            });
+          }
           span.end();
         })
       )

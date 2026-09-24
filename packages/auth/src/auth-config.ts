@@ -12,11 +12,16 @@ const authSecretConfig = Config.redacted("BETTER_AUTH_SECRET").pipe(
 );
 
 const baseURLConfig = Config.url("BETTER_AUTH_URL").pipe(Config.map(String));
+const trustedOriginConfig = Config.url("BETTER_AUTH_TRUSTED_ORIGIN").pipe(
+  Config.withDefault(new URL("http://localhost:3000")),
+  Config.map((url) => url.origin)
+);
 
 export const loadAuthConfig = Effect.gen(function* loadAuthConfig() {
-  const [baseURL, secret] = yield* Config.all([
+  const [baseURL, secret, trustedOrigin] = yield* Config.all([
     baseURLConfig,
     authSecretConfig,
+    trustedOriginConfig,
   ]);
 
   if (secret.length < 32) {
@@ -25,5 +30,5 @@ export const loadAuthConfig = Effect.gen(function* loadAuthConfig() {
     });
   }
 
-  return { baseURL, secret };
+  return { baseURL, secret, trustedOrigins: [trustedOrigin] };
 });

@@ -20,6 +20,7 @@ layer(configLayer("test-secret-that-is-at-least-32-chars-long"))(
         assert.deepStrictEqual(config, {
           baseURL: "http://localhost:3000/",
           secret: "test-secret-that-is-at-least-32-chars-long",
+          trustedOrigins: ["http://localhost:3000"],
         });
       })
     );

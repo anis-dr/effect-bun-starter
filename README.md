@@ -103,13 +103,18 @@ Start with `.env.example`:
 | --- | --- | --- | --- |
 | `DATABASE_URL` | Yes | `postgres://postgres:postgres@localhost:5437/effect_bun_starter` | PostgreSQL connection used by the API, migrations, and database tests |
 | `BETTER_AUTH_SECRET` | Yes | Replace the example value | Better Auth signing secret; minimum 32 characters |
-| `BETTER_AUTH_URL` | Yes | `http://localhost:3000` | Public application URL used by Better Auth |
+| `BETTER_AUTH_URL` | Yes | `http://localhost:3002` | API URL that serves the Better Auth routes |
+| `BETTER_AUTH_TRUSTED_ORIGIN` | No | `http://localhost:3000` | Web origin allowed to call the Better Auth routes |
 | `PORT` | No | `3002` | API listen port |
 | `VITE_API_URL` | No | `http://localhost:3002` | API base URL used by the web client |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | No | `http://127.0.0.1:27686` | OTLP HTTP collector base URL for server traces and logs |
+| `OTEL_DEPLOYMENT_ENVIRONMENT` | No | `development` | Deployment environment recorded on server telemetry |
+| `OTEL_SERVICE_VERSION` | No | `0.0.0` | Service version recorded on server telemetry |
 | `VITE_OTEL_EXPORTER_OTLP_TRACES_URL` | No | `/api/otel/v1/traces` | Browser trace export URL |
+| `VITE_OTEL_DEPLOYMENT_ENVIRONMENT` | No | `development` | Deployment environment recorded on browser traces |
+| `VITE_OTEL_SERVICE_VERSION` | No | `0.0.0` | Service version recorded on browser traces |
 
-The local web origin is allowed by the API CORS configuration. Configure deployed origins before exposing the API publicly.
+The local web origin is allowed by the API CORS configuration, with credentials so browser sessions reach the API. Configure deployed origins before exposing the API publicly.
 
 ## Customize the starter
 
@@ -143,7 +148,7 @@ bun run format
 bun run build
 ```
 
-Database and auth tests require the configured PostgreSQL instance. Start it with `bun run db:up` first.
+API, database, and auth tests require the configured PostgreSQL instance. Start it with `bun run db:up` first.
 
 ## Production builds
 
