@@ -92,6 +92,18 @@ export const localeNames = {
 } satisfies Record<Locale, string>;
 
 const english = {
+  avatarFailed: "The photo couldn’t be saved. Try again.",
+  avatarHeading: "Profile photo",
+  avatarHint: "JPEG, PNG or WebP, up to 5\u00a0MB.",
+  avatarRemove: "Remove photo",
+  avatarRemoved: "Photo removed.",
+  avatarRemoveFailed: "The photo couldn’t be removed. Try again.",
+  avatarSaved: "Photo saved.",
+  avatarUpload: "Upload a photo",
+  imageTooLarge: "Choose an image of 5\u00a0MB or less.",
+  imageUnsupported: "Choose a JPEG, PNG or WebP image.",
+  signOutDescription:
+    "Sign out of this browser. Your other devices stay signed in.",
   allStores: "All stores",
   clearSearch: "Show all stores",
   homeHeading: "Stores",
@@ -176,6 +188,18 @@ export type Copy = Messages;
 export const messages = {
   en: english,
   fr: {
+    avatarFailed: "La photo n’a pas pu être enregistrée. Réessayez.",
+    avatarHeading: "Photo de profil",
+    avatarHint: "JPEG, PNG ou WebP, 5\u00a0Mo maximum.",
+    avatarRemove: "Retirer la photo",
+    avatarRemoved: "Photo retirée.",
+    avatarRemoveFailed: "La photo n’a pas pu être retirée. Réessayez.",
+    avatarSaved: "Photo enregistrée.",
+    avatarUpload: "Importer une photo",
+    imageTooLarge: "Choisissez une image de 5\u00a0Mo maximum.",
+    imageUnsupported: "Choisissez une image JPEG, PNG ou WebP.",
+    signOutDescription:
+      "Déconnectez-vous de ce navigateur. Vos autres appareils restent connectés.",
     allStores: "Toutes les boutiques",
     clearSearch: "Voir toutes les boutiques",
     homeHeading: "Boutiques",
