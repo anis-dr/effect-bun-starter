@@ -1,4 +1,5 @@
 export { Api } from "./api/api.js";
+export { StoreId } from "./entity-ids.js";
 export {
   Group as SystemGroup,
   HealthResponse,

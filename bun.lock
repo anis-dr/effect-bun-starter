@@ -115,6 +115,7 @@
     "packages/database": {
       "name": "@effect-bun-starter/database",
       "dependencies": {
+        "@effect-bun-starter/domain": "workspace:*",
         "@effect/sql-pg": "catalog:",
         "drizzle-orm": "catalog:",
         "effect": "catalog:",
@@ -134,6 +135,9 @@
       },
       "devDependencies": {
         "@effect-bun-starter/typescript-config": "workspace:*",
+        "@effect/vitest": "catalog:",
+        "@types/bun": "catalog:",
+        "vitest": "catalog:",
       },
     },
     "packages/typescript-config": {

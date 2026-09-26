@@ -1,3 +1,4 @@
+import type { StoreId } from "@effect-bun-starter/domain";
 import { sql } from "drizzle-orm";
 import { boolean, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
@@ -21,6 +22,7 @@ export const stores = pgTable("stores", {
     .notNull()
     .defaultNow(),
   id: uuid("id")
+    .$type<StoreId>()
     .primaryKey()
     .default(sql`uuidv7()`),
   name: text("name").notNull(),

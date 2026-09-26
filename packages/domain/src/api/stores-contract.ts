@@ -5,6 +5,8 @@ import {
   HttpApiSchema,
 } from "effect/unstable/httpapi";
 
+import { StoreId } from "../entity-ids.js";
+
 export class StoresUnavailable extends Schema.TaggedError<StoresUnavailable>()(
   "StoresUnavailable",
   {
@@ -13,7 +15,7 @@ export class StoresUnavailable extends Schema.TaggedError<StoresUnavailable>()(
 ) {}
 
 export const StoreResponse = Schema.Struct({
-  id: Schema.String,
+  id: StoreId,
   name: Schema.String,
 });
 
