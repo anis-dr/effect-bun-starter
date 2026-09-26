@@ -1,0 +1,44 @@
+// tsgo (TS 7, matches `tsc`) is primary and the only source of diagnostics and completions.
+// vtsls (bundled TS 5.9) stays on for the refactors and code actions tsgo's LSP lacks.
+{
+  "languages": {
+    "TypeScript": {
+      "language_servers": [
+        "effect-tsgo",
+        "vtsls",
+        "!typescript-language-server",
+        "..."
+      ]
+    },
+    "TSX": {
+      "language_servers": [
+        "effect-tsgo",
+        "vtsls",
+        "!typescript-language-server",
+        "..."
+      ]
+    },
+    "JavaScript": {
+      "language_servers": [
+        "effect-tsgo",
+        "vtsls",
+        "!typescript-language-server",
+        "..."
+      ]
+    }
+  },
+  "lsp": {
+    "vtsls": {
+      "settings": {
+        "typescript": {
+          "validate": { "enable": false },
+          "suggest": { "enabled": false }
+        },
+        "javascript": {
+          "validate": { "enable": false },
+          "suggest": { "enabled": false }
+        }
+      }
+    }
+  }
+}
