@@ -27,8 +27,21 @@ it("rejects paths that leave the site once the URL is parsed", () => {
   }
 });
 
+it("rejects paths whose dot segments normalize to another host", () => {
+  for (const path of ["/en/..//evil.example", "/en/%2e%2e//evil.example"]) {
+    expect(decode(path)).toStrictEqual(Option.none());
+  }
+});
+
+it("rejects a path the URL parser cannot read instead of throwing", () => {
+  expect(decode("///[")).toStrictEqual(Option.none());
+});
+
 it("percent-encodes a path for a Location header", () => {
   expect(encodedSitePath("/fr/search?q=thé vert#top")).toBe(
     "/fr/search?q=th%C3%A9%20vert#top"
+  );
+  expect(encodedSitePath("/en/account?tab=avatar")).toBe(
+    "/en/account?tab=avatar"
   );
 });
