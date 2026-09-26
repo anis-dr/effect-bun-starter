@@ -20,6 +20,7 @@ The rules this repo follows, one line each. The link says why; **Enforced** says
 | A unique-constraint conflict becomes a typed 409 through `isUniqueViolation(error, "<constraint>")`, not a pre-check query. | `packages/database/src/database.ts` | review |
 | Emails are react-email templates in `packages/email` rendered by a `render…Email` function and sent only through `Mailer`; their copy lives per locale in `copy.ts`. | `packages/email/src/mailer.ts` | review |
 | Uploaded files go through `FileStorage` (bytes) and a `files` row (key); images go through `ImageProcessor` (WebP plus width copies). A table links a file with a unique foreign key and a trigger that deletes the replaced file's row. | `apps/api/src/file-storage.ts` | review |
+| Logs and traces never carry a link credential: a logged URL goes through `redactAuthTokens`, and the API's span processor applies it to every string attribute before export. | `packages/auth/src/redact-auth-tokens.ts` | `packages/auth/test/redact-auth-tokens.test.ts` |
 
 ## Naming
 

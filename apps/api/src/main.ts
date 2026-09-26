@@ -1,4 +1,7 @@
-import { trustedOriginConfig } from "@effect-bun-starter/auth";
+import {
+  redactAuthTokens,
+  trustedOriginConfig,
+} from "@effect-bun-starter/auth";
 import { Database } from "@effect-bun-starter/database";
 import { Mailer } from "@effect-bun-starter/email";
 import * as NodeSdk from "@effect/opentelemetry/NodeSdk";
@@ -6,12 +9,25 @@ import { BunHttpServer, BunRuntime, BunServices } from "@effect/platform-bun";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { BatchLogRecordProcessor } from "@opentelemetry/sdk-logs";
-import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
+import {
+  BatchSpanProcessor,
+  NoopSpanProcessor,
+} from "@opentelemetry/sdk-trace-base";
+import type { Span } from "@opentelemetry/sdk-trace-base";
 import {
   ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
   ATTR_SERVICE_NAMESPACE,
 } from "@opentelemetry/semantic-conventions";
-import { Cause, Config, Effect, Exit, Layer, Match, Option } from "effect";
+import {
+  Cause,
+  Config,
+  Effect,
+  Exit,
+  Layer,
+  Match,
+  Option,
+  Predicate,
+} from "effect";
 import {
   HttpMiddleware,
   HttpRouter,
@@ -89,7 +105,7 @@ const requestLogger = HttpMiddleware.make((httpApp) =>
     yield* log.pipe(
       Effect.annotateLogs({
         "http.method": request.method,
-        "http.url": requestUrl,
+        "http.url": redactAuthTokens(requestUrl),
         "http.status": status,
       })
     );
@@ -97,6 +113,20 @@ const requestLogger = HttpMiddleware.make((httpApp) =>
     return yield* exit;
   })
 );
+
+/** Hides link tokens in a span's string attributes while it can still be
+ * written: Effect's HTTP tracer records the full URL, its query and the
+ * `Location` header, and a reset or verification link carries its token in
+ * one of them. */
+class RedactTokensProcessor extends NoopSpanProcessor {
+  onEnding(span: Span) {
+    for (const [key, value] of Object.entries(span.attributes)) {
+      if (Predicate.isString(value)) {
+        span.setAttribute(key, redactAuthTokens(value));
+      }
+    }
+  }
+}
 
 const observabilityLayer = NodeSdk.layer(
   Effect.gen(function* observabilityConfig() {
@@ -127,7 +157,9 @@ const observabilityLayer = NodeSdk.layer(
         serviceName: "effect-bun-starter-api",
         serviceVersion,
       },
+      // Order matters: redaction runs before the exporter queues the span.
       spanProcessor: [
+        new RedactTokensProcessor(),
         new BatchSpanProcessor(
           new OTLPTraceExporter({ url: `${otlpBaseUrl}/v1/traces` })
         ),
