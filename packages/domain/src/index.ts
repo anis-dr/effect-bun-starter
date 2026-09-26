@@ -7,6 +7,7 @@ export {
 } from "./api/system-contract.js";
 export {
   StoreResponse,
+  StoresQuery,
   StoresResponse,
   StoresUnavailable,
 } from "./api/stores-contract.js";

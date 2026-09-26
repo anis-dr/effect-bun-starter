@@ -1,12 +1,17 @@
 services:
+  # glibc image, UTF-8 locale: pg_trgm only counts accented letters as word
+  # characters under a UTF-8 LC_CTYPE, and glibc sorts like production hosts
+  # (Alpine's musl sorts bytewise). Extensions come from migrations.
+  # See docs/adr/0017-search-by-folded-trigram-similarity.md.
   database:
-    image: postgres:18-alpine
+    image: postgres:18
     ports:
       - "5437:5432"
     environment:
       POSTGRES_DB: effect_bun_starter
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: --locale-provider=libc --locale=en_US.UTF-8
     volumes:
       - database-data:/var/lib/postgresql
     healthcheck:

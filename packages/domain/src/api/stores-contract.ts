@@ -21,8 +21,14 @@ export const StoreResponse = Schema.Struct({
 
 export const StoresResponse = Schema.Array(StoreResponse);
 
+/** `q`: the search box's text; blank lists every store. */
+export const StoresQuery = Schema.Struct({
+  q: Schema.optional(Schema.Trim.check(Schema.isMaxLength(100))),
+});
+
 export const Group = HttpApiGroup.make("stores").add(
   HttpApiEndpoint.get("list", "/stores", {
+    query: StoresQuery,
     error: HttpApiSchema.status(503)(StoresUnavailable),
     success: StoresResponse,
   })
