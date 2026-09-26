@@ -12,7 +12,7 @@
     "auth:secret": "bunx @better-auth/cli@latest secret",
     "build": "tsc --build",
     "test": "bun --env-file=../../.env vitest run",
-    "typecheck": "tsc --build && tsc --noEmit -p tsconfig.test.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
     "@effect-bun-starter/database": "workspace:*",

@@ -16,7 +16,7 @@
     "db:studio": "bun --env-file=../../.env drizzle-kit studio",
     "db:up": "bun --env-file=../../.env drizzle-kit up",
     "test": "bun --env-file=../../.env vitest run",
-    "typecheck": "tsc --build && tsc --noEmit -p tsconfig.test.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
     "@effect/sql-pg": "catalog:",

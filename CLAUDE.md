@@ -45,7 +45,7 @@ Typecheck policy:
 
 - Code workspaces must typecheck source and tests.
 - Use `tsconfig.json` for source checks and `tsconfig.test.json` for no-emit test checks.
-- Referenced source configs that produce declaration-only outputs should use `tsc --build`, followed by `tsc --noEmit` for tests; non-referenced packages may use no-emit checks for both configs, and config-only packages do not need fake typecheck scripts.
+- Package `typecheck` scripts run `tsc --noEmit` for both configs; turbo builds the referenced packages' declarations first (`typecheck` depends on `^build`), so a clean checkout typechecks. Config-only packages do not need fake typecheck scripts.
 
 Never guess at Effect patterns. Check the references first.
 
