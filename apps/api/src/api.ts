@@ -3,6 +3,7 @@ import { Api } from "@effect-bun-starter/domain";
 import { Layer } from "effect";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
+import { accountAvatarLayer } from "./account/avatar/avatar-handlers.js";
 import { adminAdminsLayer } from "./admin/admins/admins-handlers.js";
 import { adminSessionLayer } from "./admin/session/session-handlers.js";
 import { adminStoresLayer } from "./admin/stores/stores-handlers.js";
@@ -16,6 +17,7 @@ export const apiLayer = HttpApiBuilder.layer(Api).pipe(
   Layer.provide(adminStoresLayer),
   Layer.provide(adminSessionLayer),
   Layer.provide(adminAdminsLayer),
+  Layer.provide(accountAvatarLayer),
   Layer.provide(authenticationLayer)
 );
 

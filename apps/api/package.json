@@ -6,7 +6,7 @@
     "build": "bun build ./src/main.ts --outdir ./dist --target bun",
     "dev": "bun --env-file=../../.env --watch ./src/main.ts",
     "start": "bun --env-file=../../.env ./src/main.ts",
-    "test": "bun --env-file=../../.env vitest run",
+    "test": "bun --bun --env-file=../../.env vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {

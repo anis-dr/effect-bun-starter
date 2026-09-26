@@ -2,10 +2,20 @@ import { Database } from "@effect-bun-starter/database";
 import { Mailer, type RenderedEmail } from "@effect-bun-starter/email";
 import * as BunHttpServer from "@effect/platform-bun/BunHttpServer";
 import { assert } from "@effect/vitest";
-import { ConfigProvider, Context, Effect, Layer, Option, Schema } from "effect";
+import {
+  ConfigProvider,
+  Context,
+  Effect,
+  FileSystem,
+  Layer,
+  Option,
+  Schema,
+} from "effect";
 import { HttpRouter } from "effect/unstable/http";
 
 import { appLayer } from "../src/api.js";
+import { FileStorage } from "../src/file-storage.js";
+import { ImageProcessor } from "../src/image-processor.js";
 
 class TestAppOpenError extends Schema.TaggedError<TestAppOpenError>()(
   "TestAppOpenError",
@@ -31,10 +41,28 @@ const recordingMailerLayer = Layer.succeed(
   })
 );
 
+/** Stored files in a temporary directory, served at `/uploads` like the
+ * real app, removed with the app. */
+const fileStorageTestLayer = Layer.unwrap(
+  FileSystem.FileSystem.use((fs) => fs.makeTempDirectoryScoped()).pipe(
+    Effect.map((directory) =>
+      Layer.provideMerge(
+        FileStorage.layerUploadsRoute(directory),
+        FileStorage.layerFileSystem({
+          directory,
+          publicUrl: "http://localhost:3002/uploads",
+        })
+      )
+    )
+  )
+);
+
 const testAppLayer = appLayer.pipe(
+  Layer.provideMerge(fileStorageTestLayer),
+  Layer.provideMerge(ImageProcessor.layerBun),
   Layer.provideMerge(Database.layer),
   Layer.provide(recordingMailerLayer),
-  Layer.provide(BunHttpServer.layerHttpServices),
+  Layer.provideMerge(BunHttpServer.layerHttpServices),
   Layer.provide(
     ConfigProvider.layerAdd(
       ConfigProvider.fromUnknown({ SUPERADMIN_EMAIL: testSuperadminEmail }),

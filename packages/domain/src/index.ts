@@ -29,6 +29,14 @@ export {
   AppointAdminRequest,
 } from "./api/admin-admins-contract.js";
 export {
+  AccountUnavailable,
+  AvatarResponse,
+  ImageTooLarge,
+  maxImageBytes,
+  SetAvatarRequest,
+  UnsupportedImage,
+} from "./api/account-avatar-contract.js";
+export {
   allow,
   makePermix,
   type Permissions,
