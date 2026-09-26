@@ -60,7 +60,7 @@ const Home = () => {
 
   return (
     <AppShell contentPadding={6}>
-      <VStack gap={4} maxWidth={720}>
+      <VStack gap={4} maxWidth="45rem">
         <Text color="secondary" type="label">
           {status}
         </Text>

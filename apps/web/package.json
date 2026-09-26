@@ -50,6 +50,7 @@
   "devDependencies": {
     "@effect-bun-starter/typescript-config": "workspace:*",
     "@rolldown/plugin-babel": "^0.2.4",
+    "@stylexjs/unplugin": "0.19.1",
     "@tanstack/devtools-vite": "latest",
     "@tanstack/router-cli": "^1.167.38",
     "@testing-library/dom": "^10.4.2",

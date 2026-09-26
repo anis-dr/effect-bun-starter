@@ -1,0 +1,46 @@
+/*
+ * Phone tap targets of at least 44 × 44 (WCAG 2.5.5).
+ * Astryx already grows inputs to 16 px text under a coarse pointer; its
+ * buttons and rows keep their drawn size. Buttons, segments and the input
+ * clear button keep that size too and get an invisible hit area of at least
+ * 44 × 44 around them, so nothing moves; interactive list and menu rows and
+ * breadcrumb links grow to 44 px tall.
+ * Pages rely on this rule; they set no per-page sizes for 44 px.
+ */
+@media (pointer: coarse) {
+  .astryx-text-input button:not(.astryx-button) {
+    position: relative;
+  }
+
+  :is(
+    .astryx-button,
+    .astryx-segmented-control-item,
+    .astryx-text-input button:not(.astryx-button)
+  )::before {
+    content: "";
+    position: absolute;
+    inset-block: min(0px, calc((100% - var(--spacing-11)) / 2));
+    inset-inline: min(0px, calc((100% - var(--spacing-11)) / 2));
+  }
+
+  :is(.astryx-list-item, .astryx-side-nav-item):has(a[href], button),
+  .astryx-dropdown-menu-item {
+    min-block-size: var(--spacing-11);
+  }
+
+  .astryx-breadcrumb-item > a {
+    position: relative;
+  }
+
+  .astryx-breadcrumb-item > a::before {
+    content: "";
+    position: absolute;
+    inset-block: min(0px, calc((100% - var(--spacing-11)) / 2));
+    inset-inline: 0;
+  }
+}
+
+/* No double-tap zoom on controls: a tap acts at once. */
+:is(a[href], button, [role="button"], label, summary) {
+  touch-action: manipulation;
+}
