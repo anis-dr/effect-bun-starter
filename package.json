@@ -31,7 +31,7 @@
     "format:fix": "oxfmt .",
     "lint": "ultracite check --type-aware .",
     "lint:fix": "ultracite fix --type-aware .",
-    "prepare": "effect-tsgo patch",
+    "prepare": "effect-tsgo patch && git config core.hooksPath .githooks",
     "test": "turbo test",
     "typecheck": "turbo typecheck"
   },

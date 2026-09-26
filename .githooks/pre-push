@@ -1,0 +1,3 @@
+#!/bin/sh
+# The fast half of CI; the database-backed tests run in CI.
+bun run lint && bun run typecheck
