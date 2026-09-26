@@ -10,12 +10,42 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LocaleRouteImport } from './routes/$locale'
+import { Route as LocaleIndexRouteImport } from './routes/$locale.index'
+import { Route as LocaleForgotPasswordRouteImport } from './routes/$locale.forgot-password'
+import { Route as LocaleResetPasswordRouteImport } from './routes/$locale.reset-password'
+import { Route as LocaleSignInRouteImport } from './routes/$locale.sign-in'
 import { Route as ApiOtelV1TracesRouteImport } from './routes/api/otel/v1/traces'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleRoute = LocaleRouteImport.update({
+  id: '/$locale',
+  path: '/$locale',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleIndexRoute = LocaleIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleRoute,
+} as any)
+const LocaleForgotPasswordRoute = LocaleForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => LocaleRoute,
+} as any)
+const LocaleResetPasswordRoute = LocaleResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => LocaleRoute,
+} as any)
+const LocaleSignInRoute = LocaleSignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => LocaleRoute,
 } as any)
 const ApiOtelV1TracesRoute = ApiOtelV1TracesRouteImport.update({
   id: '/api/otel/v1/traces',
@@ -25,27 +55,63 @@ const ApiOtelV1TracesRoute = ApiOtelV1TracesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$locale': typeof LocaleRouteWithChildren
+  '/$locale/forgot-password': typeof LocaleForgotPasswordRoute
+  '/$locale/reset-password': typeof LocaleResetPasswordRoute
+  '/$locale/sign-in': typeof LocaleSignInRoute
+  '/$locale/': typeof LocaleIndexRoute
   '/api/otel/v1/traces': typeof ApiOtelV1TracesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$locale/forgot-password': typeof LocaleForgotPasswordRoute
+  '/$locale/reset-password': typeof LocaleResetPasswordRoute
+  '/$locale/sign-in': typeof LocaleSignInRoute
+  '/$locale': typeof LocaleIndexRoute
   '/api/otel/v1/traces': typeof ApiOtelV1TracesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$locale': typeof LocaleRouteWithChildren
+  '/$locale/forgot-password': typeof LocaleForgotPasswordRoute
+  '/$locale/reset-password': typeof LocaleResetPasswordRoute
+  '/$locale/sign-in': typeof LocaleSignInRoute
+  '/$locale/': typeof LocaleIndexRoute
   '/api/otel/v1/traces': typeof ApiOtelV1TracesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/otel/v1/traces'
+  fullPaths:
+    | '/'
+    | '/$locale'
+    | '/$locale/forgot-password'
+    | '/$locale/reset-password'
+    | '/$locale/sign-in'
+    | '/$locale/'
+    | '/api/otel/v1/traces'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/otel/v1/traces'
-  id: '__root__' | '/' | '/api/otel/v1/traces'
+  to:
+    | '/'
+    | '/$locale/forgot-password'
+    | '/$locale/reset-password'
+    | '/$locale/sign-in'
+    | '/$locale'
+    | '/api/otel/v1/traces'
+  id:
+    | '__root__'
+    | '/'
+    | '/$locale'
+    | '/$locale/forgot-password'
+    | '/$locale/reset-password'
+    | '/$locale/sign-in'
+    | '/$locale/'
+    | '/api/otel/v1/traces'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LocaleRoute: typeof LocaleRouteWithChildren
   ApiOtelV1TracesRoute: typeof ApiOtelV1TracesRoute
 }
 
@@ -58,6 +124,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale': {
+      id: '/$locale'
+      path: '/$locale'
+      fullPath: '/$locale'
+      preLoaderRoute: typeof LocaleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/': {
+      id: '/$locale/'
+      path: '/'
+      fullPath: '/$locale/'
+      preLoaderRoute: typeof LocaleIndexRouteImport
+      parentRoute: typeof LocaleRoute
+    }
+    '/$locale/forgot-password': {
+      id: '/$locale/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/$locale/forgot-password'
+      preLoaderRoute: typeof LocaleForgotPasswordRouteImport
+      parentRoute: typeof LocaleRoute
+    }
+    '/$locale/reset-password': {
+      id: '/$locale/reset-password'
+      path: '/reset-password'
+      fullPath: '/$locale/reset-password'
+      preLoaderRoute: typeof LocaleResetPasswordRouteImport
+      parentRoute: typeof LocaleRoute
+    }
+    '/$locale/sign-in': {
+      id: '/$locale/sign-in'
+      path: '/sign-in'
+      fullPath: '/$locale/sign-in'
+      preLoaderRoute: typeof LocaleSignInRouteImport
+      parentRoute: typeof LocaleRoute
+    }
     '/api/otel/v1/traces': {
       id: '/api/otel/v1/traces'
       path: '/api/otel/v1/traces'
@@ -68,8 +169,26 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface LocaleRouteChildren {
+  LocaleForgotPasswordRoute: typeof LocaleForgotPasswordRoute
+  LocaleResetPasswordRoute: typeof LocaleResetPasswordRoute
+  LocaleSignInRoute: typeof LocaleSignInRoute
+  LocaleIndexRoute: typeof LocaleIndexRoute
+}
+
+const LocaleRouteChildren: LocaleRouteChildren = {
+  LocaleForgotPasswordRoute: LocaleForgotPasswordRoute,
+  LocaleResetPasswordRoute: LocaleResetPasswordRoute,
+  LocaleSignInRoute: LocaleSignInRoute,
+  LocaleIndexRoute: LocaleIndexRoute,
+}
+
+const LocaleRouteWithChildren =
+  LocaleRoute._addFileChildren(LocaleRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LocaleRoute: LocaleRouteWithChildren,
   ApiOtelV1TracesRoute: ApiOtelV1TracesRoute,
 }
 export const routeTree = rootRouteImport

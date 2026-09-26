@@ -1,0 +1,261 @@
+diff --git a/dist/Kbd/Kbd.js b/dist/Kbd/Kbd.js
+index d1bb4f8544f3aa0b4f5692bc4f90058057dac79e..465c7b3c5c48e5d8536ab1d595790646546b5e63 100644
+--- a/dist/Kbd/Kbd.js
++++ b/dist/Kbd/Kbd.js
+@@ -17,6 +17,7 @@ import * as stylex from '@stylexjs/stylex';
+ import { mergeProps } from "../utils/index.js";
+ import { isApplePlatform } from "../utils/isApplePlatform.js";
+ import { themeProps } from "../utils/themeProps.js";
++import { useTranslator } from "../i18n/index.js";
+ import "../theme/tokens.stylex.js";
+ import { colorVars, spacingVars, radiusVars, typographyVars, fontWeightVars, typeScaleVars } from "../theme/tokens.stylex.js";
+ import { jsx as _jsx } from "react/jsx-runtime";
+@@ -67,11 +68,17 @@ function getKeyDisplay(key, isMac) {
+  * (⌘, ⇧, ↵, …) that assistive tech cannot announce meaningfully, so the
+  * accessible name for the shortcut is built from these words instead.
+  */
+-const KEY_LABEL = new Map([['ctrl', 'Control'], ['alt', 'Alt'], ['shift', 'Shift'], ['enter', 'Enter'], ['backspace', 'Backspace'], ['escape', 'Escape'], ['tab', 'Tab'], ['up', 'Up arrow'], ['down', 'Down arrow'], ['left', 'Left arrow'], ['right', 'Right arrow'], ['plus', 'Plus']]);
+-function getKeyLabel(key, isMac) {
++const KEY_LABEL = new Map([['ctrl', 'Control'], ['alt', 'Alt'], ['shift', 'Shift'], ['enter', 'Enter'], ['backspace', 'Backspace'], ['escape', 'Escape'], ['tab', 'Tab'], ['plus', 'Plus']]);
++/** Arrow names go through the translator: they are read on every roving list. */
++const KEY_LABEL_MESSAGE = new Map([['up', '@astryx.kbd.upArrow'], ['down', '@astryx.kbd.downArrow'], ['left', '@astryx.kbd.leftArrow'], ['right', '@astryx.kbd.rightArrow']]);
++function getKeyLabel(key, isMac, t) {
+   if (key === 'mod') {
+     return isMac ? 'Command' : 'Control';
+   }
++  const message = KEY_LABEL_MESSAGE.get(key);
++  if (message !== undefined) {
++    return t(message);
++  }
+   return KEY_LABEL.get(key) ?? key.toUpperCase();
+ }
+ function subscribeToPlatformChanges() {
+@@ -104,6 +111,7 @@ export function Kbd({
+   ...rest
+ }) {
+   const isMac = useSyncExternalStore(subscribeToPlatformChanges, isApplePlatform, getServerPlatformSnapshot);
++  const t = useTranslator();
+   const keyOccurrences = new Map();
+   const parts = keys.split('+').map(key => key.trim().toLowerCase()).map(sourceKey => {
+     const occurrence = keyOccurrences.get(sourceKey) ?? 0;
+@@ -118,7 +126,7 @@ export function Kbd({
+   // the visual glyphs below are announced meaninglessly by assistive tech.
+   const accessibleName = parts.map(({
+     key
+-  }) => getKeyLabel(key, isMac)).join(' + ');
++  }) => getKeyLabel(key, isMac, t)).join(' + ');
+   return /*#__PURE__*/_jsx("span", {
+     ...rest,
+     ref: ref,
+diff --git a/dist/TextArea/TextArea.js b/dist/TextArea/TextArea.js
+index 23ddc87b442a1dee57f9c9e209a6a7b814fc4c7f..e1974c7133c8a8ee8f1e0263d65b5a4d4a982f24 100644
+--- a/dist/TextArea/TextArea.js
++++ b/dist/TextArea/TextArea.js
+@@ -349,7 +349,10 @@ export function TextArea({
+         _jsx(Icon, {
+           icon: "warning",
+           size: "sm"
+-        }), valueLength, "/", maxLength]
++        }), t('@astryx.textArea.counter', {
++          count: valueLength,
++          max: maxLength
++        })]
+       })]
+     }), showsDisabledMessage && disabledMessageTooltip.renderTooltip(disabledMessage)]
+   });
+diff --git a/dist/TextInput/TextInput.d.ts b/dist/TextInput/TextInput.d.ts
+index 8768dd0e5c22f9e5069defb4a69fb2a381c8a7ab..91751528602779a58cde3b20b7a1c213cc7e17e4 100644
+--- a/dist/TextInput/TextInput.d.ts
++++ b/dist/TextInput/TextInput.d.ts
+@@ -102,6 +102,11 @@ export interface TextInputProps extends Omit<BaseProps, 'onChange' | 'defaultVal
+      * Accepts a ReactNode (e.g. `<Icon icon={SearchIcon} />`) or an SVG icon component directly.
+      */
+     startIcon?: ReactNode | IconType;
++    /**
++     * Content at the end of the input box, after the status icon, and after
++     * the input in focus order (e.g. a show-password button).
++     */
++    endContent?: ReactNode;
+     /**
+      * Status indicator for the input.
+      * When set, displays a colored border and status icon.
+@@ -190,7 +195,7 @@ export interface TextInputProps extends Omit<BaseProps, 'onChange' | 'defaultVal
+  * <TextInput label="Search" isLabelHidden value={query} onChange={setQuery} />
+  * ```
+  */
+-export declare function TextInput({ type, label, isLabelHidden, description, isOptional, isRequired, isDisabled, isReadOnly, disabledMessage, startIcon, status, statusVariant, size: sizeProp, onChange, changeAction, isLoading, value, placeholder, labelTooltip, hasClear, hasAutoFocus, htmlName, onEnter, onKeyDown, width, xstyle, className, style, ref, ...rest }: TextInputProps): import("react").JSX.Element;
++export declare function TextInput({ type, label, isLabelHidden, description, isOptional, isRequired, isDisabled, isReadOnly, disabledMessage, startIcon, endContent, status, statusVariant, size: sizeProp, onChange, changeAction, isLoading, value, placeholder, labelTooltip, hasClear, hasAutoFocus, htmlName, onEnter, onKeyDown, width, xstyle, className, style, ref, ...rest }: TextInputProps): import("react").JSX.Element;
+ export declare namespace TextInput {
+     var displayName: string;
+ }
+diff --git a/dist/TextInput/TextInput.js b/dist/TextInput/TextInput.js
+index 8f4a24adebea09efa3979658e8521305090ab3f4..d92d1926f339c0311cc180d703a06276053012de 100644
+--- a/dist/TextInput/TextInput.js
++++ b/dist/TextInput/TextInput.js
+@@ -73,6 +73,7 @@ export function TextInput({
+   isReadOnly = false,
+   disabledMessage,
+   startIcon,
++  endContent,
+   status,
+   statusVariant = 'attached',
+   size: sizeProp,
+@@ -255,7 +256,7 @@ export function TextInput({
+       onClick: handleClear
+     }), isBusy && /*#__PURE__*/_jsx(Spinner, {
+       size: "sm"
+-    }), statusIcon]
++    }), statusIcon, endContent]
+   });
+   if (inputGroup) {
+     return /*#__PURE__*/_jsxs(_Fragment, {
+diff --git a/locales/en.json b/locales/en.json
+index 665ef0deaa976d1e2a8dcb2894aded5618a96d97..a0842bc14a1263d9db985e2241d7e8d8cc84c7a4 100644
+--- a/locales/en.json
++++ b/locales/en.json
+@@ -1083,6 +1083,22 @@
+     "defaultMessage": "{label}, {fileNames}",
+     "description": "Accessible name for a FileInput trigger that has files attached, composing the field label with the selected filenames. Example: `Attachments, report.pdf, notes.txt`."
+   },
++  "@astryx.kbd.upArrow": {
++    "defaultMessage": "Up arrow",
++    "description": "Screen-reader name of the ↑ key in a keyboard shortcut or hint."
++  },
++  "@astryx.kbd.downArrow": {
++    "defaultMessage": "Down arrow",
++    "description": "Screen-reader name of the ↓ key in a keyboard shortcut or hint."
++  },
++  "@astryx.kbd.leftArrow": {
++    "defaultMessage": "Left arrow",
++    "description": "Screen-reader name of the ← key in a keyboard shortcut or hint."
++  },
++  "@astryx.kbd.rightArrow": {
++    "defaultMessage": "Right arrow",
++    "description": "Screen-reader name of the → key in a keyboard shortcut or hint."
++  },
+   "@astryx.keyboardHint.toNavigate": {
+     "defaultMessage": "to navigate",
+     "description": "Trailing text in the keyboard-hint badge, shown after arrow-key icons — reads as `← → to navigate`. Lowercase sentence fragment completing the visual phrase; the badge is aria-hidden, so this is for sighted users only."
+@@ -1259,6 +1275,10 @@
+     "defaultMessage": "{count, number} {count, plural, one {character} other {characters}} remaining",
+     "description": "Screen-reader-only announcement of how many characters the user can still type before hitting a TextArea's maxLength. Announced politely as the count nears the limit. `{count}` is the number remaining — example: `12 characters remaining`."
+   },
++  "@astryx.textArea.counter": {
++    "defaultMessage": "{count, number}/{max, number}",
++    "description": "Visible character counter under a text area with a maximum length. Example: \"120/5,000\"."
++  },
+   "@astryx.textArea.charactersOverLimit": {
+     "defaultMessage": "{count, number} {count, plural, one {character} other {characters}} over the limit",
+     "description": "Screen-reader-only assertive announcement when the user has typed past a TextArea's maxLength. `{count}` is how many characters over — example: `3 characters over the limit`."
+diff --git a/src/Kbd/Kbd.tsx b/src/Kbd/Kbd.tsx
+index 2a751e09d3b74eb6a9150570855cc7b6700eb0ff..f18a7339b3dcb0900c22d26931f7efb955d418c0 100644
+--- a/src/Kbd/Kbd.tsx
++++ b/src/Kbd/Kbd.tsx
+@@ -16,6 +16,7 @@
+ import React, {useSyncExternalStore} from 'react';
+ import * as stylex from '@stylexjs/stylex';
+ import {mergeProps} from '../utils';
++import {useTranslator} from '../i18n';
+ import {isApplePlatform} from '../utils/isApplePlatform';
+ import type {BaseProps} from '../BaseProps';
+ import {themeProps} from '../utils/themeProps';
+@@ -106,17 +107,29 @@ const KEY_LABEL = new Map<string, string>([
+   ['backspace', 'Backspace'],
+   ['escape', 'Escape'],
+   ['tab', 'Tab'],
+-  ['up', 'Up arrow'],
+-  ['down', 'Down arrow'],
+-  ['left', 'Left arrow'],
+-  ['right', 'Right arrow'],
+   ['plus', 'Plus'],
+ ]);
+ 
+-function getKeyLabel(key: string, isMac: boolean): string {
++/** Arrow names go through the translator: they are read on every roving list. */
++const KEY_LABEL_MESSAGE = new Map<string, string>([
++  ['up', '@astryx.kbd.upArrow'],
++  ['down', '@astryx.kbd.downArrow'],
++  ['left', '@astryx.kbd.leftArrow'],
++  ['right', '@astryx.kbd.rightArrow'],
++]);
++
++function getKeyLabel(
++  key: string,
++  isMac: boolean,
++  t: (key: string) => string,
++): string {
+   if (key === 'mod') {
+     return isMac ? 'Command' : 'Control';
+   }
++  const message = KEY_LABEL_MESSAGE.get(key);
++  if (message !== undefined) {
++    return t(message);
++  }
+   return KEY_LABEL.get(key) ?? key.toUpperCase();
+ }
+ 
+@@ -169,6 +182,7 @@ export function Kbd({keys, ref, xstyle, className, style, ...rest}: KbdProps) {
+     isApplePlatform,
+     getServerPlatformSnapshot,
+   );
++  const t = useTranslator();
+ 
+   const keyOccurrences = new Map<string, number>();
+   const parts = keys
+@@ -186,7 +200,7 @@ export function Kbd({keys, ref, xstyle, className, style, ...rest}: KbdProps) {
+   // Screen-reader name: the joined spoken labels (e.g. "Command + K"), since
+   // the visual glyphs below are announced meaninglessly by assistive tech.
+   const accessibleName = parts
+-    .map(({key}) => getKeyLabel(key, isMac))
++    .map(({key}) => getKeyLabel(key, isMac, t))
+     .join(' + ');
+ 
+   return (
+diff --git a/src/TextArea/TextArea.tsx b/src/TextArea/TextArea.tsx
+index fa5d000155c1fe4707e8a403488a629759025781..2709e0fa1e8ee78b88e82c5eca2b289b07d3f55a 100644
+--- a/src/TextArea/TextArea.tsx
++++ b/src/TextArea/TextArea.tsx
+@@ -667,7 +667,10 @@ export function TextArea({
+               // live-region announcement carry the meaning.
+               <Icon icon="warning" size="sm" />
+             )}
+-            {valueLength}/{maxLength}
++            {t('@astryx.textArea.counter', {
++              count: valueLength,
++              max: maxLength,
++            })}
+           </div>
+         )}
+       </div>
+diff --git a/src/TextInput/TextInput.tsx b/src/TextInput/TextInput.tsx
+index c1c6c8c357e08fe54f7508a4ff0dc2ed54120f74..afe00ab290cb9bf1ecc1357f8db9d5e568d18e15 100644
+--- a/src/TextInput/TextInput.tsx
++++ b/src/TextInput/TextInput.tsx
+@@ -190,6 +190,11 @@ export interface TextInputProps extends Omit<
+    * Accepts a ReactNode (e.g. `<Icon icon={SearchIcon} />`) or an SVG icon component directly.
+    */
+   startIcon?: ReactNode | IconType;
++  /**
++   * Content at the end of the input box, after the status icon, and after
++   * the input in focus order (e.g. a show-password button).
++   */
++  endContent?: ReactNode;
+   /**
+    * Status indicator for the input.
+    * When set, displays a colored border and status icon.
+@@ -293,6 +298,7 @@ export function TextInput({
+   isReadOnly = false,
+   disabledMessage,
+   startIcon,
++  endContent,
+   status,
+   statusVariant = 'attached',
+   size: sizeProp,
+@@ -490,6 +496,7 @@ export function TextInput({
+       )}
+       {isBusy && <Spinner size="sm" />}
+       {statusIcon}
++      {endContent}
+     </div>
+   );
+ 

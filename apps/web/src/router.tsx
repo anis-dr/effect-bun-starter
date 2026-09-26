@@ -61,4 +61,10 @@ declare module "@tanstack/react-router" {
   interface Register {
     router: ReturnType<typeof getRouter>;
   }
+  /** `isPrivate`: a page for one signed-in account or for signing in. The
+   * root head marks it `noindex` and gives it no canonical or language
+   * versions. */
+  interface StaticDataRouteOption {
+    isPrivate?: boolean;
+  }
 }

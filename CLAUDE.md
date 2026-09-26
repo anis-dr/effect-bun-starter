@@ -26,7 +26,7 @@ Put files that are not meant to be committed in `.scratchpad/` at the repository
 
 Before writing HTML, CSS or client-side code, search the `modern-web-guidance` skill for the task, retrieve the matching guides, and check the finished code against them. Astryx components come first; the guides cover what Astryx leaves open.
 
-The rendering rules are in [CONVENTIONS.md](CONVENTIONS.md#web).
+The rendering, styling and sizing rules are in [CONVENTIONS.md](CONVENTIONS.md#web) and [ADR 0015](docs/adr/0015-style-through-the-astryx-ladder.md).
 
 <!-- effect-solutions:start -->
 
@@ -70,7 +70,7 @@ Never guess at Effect patterns. Check the references first.
 <!-- effect-solutions:end -->
 
 <!-- ASTRYX:START -->
-Astryx v0.1.8 · 90+ components
+Astryx v0.6.3 · 90+ components
 CLI: run every command as `bunx astryx <cmd>` (shown below as `astryx ...`).
 
 SETUP (once, in your app entry e.g. main.tsx) — without these, components render unstyled:
@@ -83,19 +83,18 @@ WORKFLOW — discover, don't guess. Before writing UI:
 3. `astryx component <Name>` — props + examples for every component you use.
 
 RULES:
-- No <div> — components do all layout/spacing. Full page → AppShell; sidebar nav → SideNav.
-- Frame first: pick the shell (AppShell / Layout+LayoutPanel) and budget regions in px BEFORE writing content (`astryx docs layout`).
-- Dense data = rows (Table, List/Item) edge-to-edge — never Card-wrapped list items. Card = dashboard widgets, galleries, settings groups only.
-- Status → StatusDot/Token; Badge only for counts and enumerated states, never decoration.
-- Custom styling: component props first; else style/className with tokens — var(--color-*|--spacing-*|--radius-*). No raw hex/px. (No StyleX/Tailwind compiler here — don't use xstyle/utility classes.)
-- Tokens for every value (`astryx docs tokens`). Brand/accent via `astryx theme` — never override --color-* in :root.
-- SELF-CHECK before you finish: re-read the file and replace any raw <div>/<span> layout, imported .css/@apply, or hardcoded value (#hex, 16px) with the component or a token (var(--color-*|--spacing-*|…)). If unsure a component/prop exists, run `astryx component <Name>` / `astryx search "<thing>"`; don't hand-roll CSS.
+- No <div> — components do all layout/spacing, page frame included.
+- Frame first: read `astryx docs layout` before writing any page or screen — page frame, region widths, breakpoint behavior.
+- Dense data = rows (Table, List/Item), never Card-wrapped list items; Card is for standalone widgets. Status = StatusDot/Token; Badge = counts only.
+- Custom styling: component props first; else the xstyle prop / StyleX tokens (@astryxdesign/core/theme/tokens.stylex). No raw hex/px.
+- Tokens for every value (`astryx docs tokens`). Brand/accent belongs in the theme (`astryx theme list` / `theme add <slug>`, or `astryx theme template` for a custom one) — never override --color-* in :root.
+- SELF-CHECK before you finish: re-read the file and replace any className=, style={{…}}, raw <div>/<span> layout, imported .css/@apply, or hardcoded #hex/px with the component or the xstyle prop + a token. If unsure a component/prop exists, run `astryx component <Name>` / `astryx search "<thing>"`; don't hand-roll CSS.
 
 MORE CLI:
   search "<query>"   find any component / hook / doc / template / block
   component --list   90+ components by category
   template --list    page + block recipes
-  docs <topic>       color, elevation, icons, illustrations, internationalization, layout, migration, motion, principles, shape, spacing, styling, theme, tokens, typography
+  docs <topic>       browser-support, cli-integrations, color, elevation, getting-started, icons, illustrations, internationalization, layout, migration, motion, principles, shape, spacing, styling-libraries, styling, theme, tokens, typography, working-with-ai
   swizzle <Name>     eject component source for deep customization
-  upgrade --apply    run after any @astryxdesign/core bump
+  upgrade --apply    run after any Astryx or integration dependency bump
 <!-- ASTRYX:END -->

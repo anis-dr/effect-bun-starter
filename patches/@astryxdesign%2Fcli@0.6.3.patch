@@ -1,0 +1,39 @@
+diff --git a/foundation/agent-docs/agent-docs.mjs b/foundation/agent-docs/agent-docs.mjs
+index dbdc04735e002d03fef1a3b6c21406216eaa57f6..7a159acb8b963ec587c81dfef2bbbc1f4907ea97 100644
+--- a/foundation/agent-docs/agent-docs.mjs
++++ b/foundation/agent-docs/agent-docs.mjs
+@@ -327,13 +327,30 @@ export function resolveAgentPaths(targetDir, agent) {
+  */
+ export function detectStylingSystem(targetDir) {
+   try {
+-    const pkgPath = path.join(targetDir, 'package.json');
+-    if (!fs.existsSync(pkgPath)) return 'css';
+-    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+-    const deps = {...pkg.dependencies, ...pkg.devDependencies};
++    const readDeps = pkgPath => {
++      if (!fs.existsSync(pkgPath)) return {};
++      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
++      return {...pkg.dependencies, ...pkg.devDependencies};
++    };
++    const rootPkgPath = path.join(targetDir, 'package.json');
++    if (!fs.existsSync(rootPkgPath)) return 'css';
++    const rootPkg = JSON.parse(fs.readFileSync(rootPkgPath, 'utf-8'));
++    // A monorepo declares its compiler in a workspace (`apps/web`), not at
++    // the root the agent docs live beside: read `dir/*` workspace globs too.
++    const workspaces = Array.isArray(rootPkg.workspaces)
++      ? rootPkg.workspaces
++      : (rootPkg.workspaces?.packages ?? []);
++    const workspacePkgPaths = workspaces.flatMap(pattern => {
++      if (!pattern.endsWith('/*')) return [path.join(targetDir, pattern, 'package.json')];
++      const dir = path.join(targetDir, pattern.slice(0, -2));
++      if (!fs.existsSync(dir)) return [];
++      return fs.readdirSync(dir).map(name => path.join(dir, name, 'package.json'));
++    });
++    const deps = Object.assign({}, readDeps(rootPkgPath), ...workspacePkgPaths.map(readDeps));
+     // Key off a StyleX *compiler* plugin — the runtime alone won't render.
+     const stylexCompilers = [
+       '@stylexjs/babel-plugin',
++      '@stylexjs/unplugin',
+       'vite-plugin-stylex',
+       'unplugin-stylex',
+       '@stylexswc/unplugin',
