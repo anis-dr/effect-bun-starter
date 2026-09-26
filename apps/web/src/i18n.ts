@@ -1,4 +1,4 @@
-import { Array as Arr, Boolean, Option, Order } from "effect";
+import { Array as Arr, Boolean, Match, Option, Order } from "effect";
 
 /** The app's languages. Adding one touches the web app and the emails;
  * the steps are in the README ("To add a language"). */
@@ -154,6 +154,11 @@ const english = {
   storesEmptyDescription: "An admin can create the first one.",
   storesEmptyTitle: "No stores yet",
   storesMatching: "Results for “{q}”",
+  // Announced after a search: `{count}` via `fillCount`.
+  storesListedOne: "{count} store",
+  storesListedOther: "{count} stores",
+  storesMatchOne: "{count} store matches “{q}”",
+  storesMatchOther: "{count} stores match “{q}”",
   storesNoMatchDescription: "Check the spelling or try fewer words.",
   storesNoMatchTitle: "Nothing matches “{q}”",
   storesUnavailable: "The stores couldn’t be loaded. Try again in a moment.",
@@ -300,6 +305,10 @@ export const messages = {
     storesEmptyDescription: "Un administrateur peut créer la première.",
     storesEmptyTitle: "Aucune boutique pour l’instant",
     storesMatching: "Résultats pour «\u00a0{q}\u00a0»",
+    storesListedOne: "{count} boutique",
+    storesListedOther: "{count} boutiques",
+    storesMatchOne: "{count} boutique correspond à «\u00a0{q}\u00a0»",
+    storesMatchOther: "{count} boutiques correspondent à «\u00a0{q}\u00a0»",
     storesNoMatchDescription:
       "Vérifiez l’orthographe ou essayez avec moins de mots.",
     storesNoMatchTitle: "Aucun résultat pour «\u00a0{q}\u00a0»",
@@ -387,6 +396,23 @@ export const fill = (
   values: Readonly<Partial<Record<string, string>>>
 ): string =>
   template.replace(/\{(\w+)\}/g, (match, key: string) => values[key] ?? match);
+
+/** `forms.one` or `forms.other`, as the locale's plural rules pick for
+ * `count`, filled with `count` grouped the locale's way ("1 234" in French)
+ * and `values`. */
+export const fillCount = (
+  locale: Locale,
+  count: number,
+  forms: { readonly one: string; readonly other: string },
+  values: Readonly<Partial<Record<string, string>>> = {}
+): string =>
+  fill(
+    Match.value(new Intl.PluralRules(locale).select(count)).pipe(
+      Match.when("one", () => forms.one),
+      Match.orElse(() => forms.other)
+    ),
+    { ...values, count: new Intl.NumberFormat(locale).format(count) }
+  );
 
 /** `<title>` for a route: "Sign in · Effect Bun Starter". */
 export const documentTitle = (locale: Locale, pick: (copy: Copy) => string) => {

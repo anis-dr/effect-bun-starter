@@ -2,7 +2,9 @@ import { expect, it } from "@effect/vitest";
 import { Option } from "effect";
 
 import {
+  fillCount,
   localeCookieName,
+  messages,
   negotiateLocale,
   switchLocale,
 } from "../src/i18n.js";
@@ -39,5 +41,27 @@ it("switches the path and its ?redirect= into the chosen locale", () => {
   // A redirect that merely starts with a locale's letters keeps them.
   expect(switchLocale("/fr/sign-in?redirect=%2Fentries", "en")).toBe(
     "/en/sign-in?redirect=%2Fentries"
+  );
+});
+
+const storesFound = (locale: "en" | "fr", count: number) =>
+  fillCount(
+    locale,
+    count,
+    {
+      one: messages[locale].storesMatchOne,
+      other: messages[locale].storesMatchOther,
+    },
+    { q: "caf" }
+  );
+
+it("counts in the locale's plural form and digit grouping", () => {
+  expect(storesFound("en", 1)).toBe("1 store matches “caf”");
+  expect(storesFound("en", 1234)).toBe("1,234 stores match “caf”");
+  expect(storesFound("fr", 0)).toBe(
+    "0 boutique correspond à «\u00a0caf\u00a0»"
+  );
+  expect(storesFound("fr", 1234)).toBe(
+    "1\u202f234 boutiques correspondent à «\u00a0caf\u00a0»"
   );
 });

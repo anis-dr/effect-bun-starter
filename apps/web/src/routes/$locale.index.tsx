@@ -7,6 +7,7 @@ import { List, ListItem } from "@astryxdesign/core/List";
 import { StackItem } from "@astryxdesign/core/Stack";
 import { Text } from "@astryxdesign/core/Text";
 import { TextInput } from "@astryxdesign/core/TextInput";
+import { VisuallyHidden } from "@astryxdesign/core/VisuallyHidden";
 import { VStack } from "@astryxdesign/core/VStack";
 import { StoresQuery, type StoresResponse } from "@effect-bun-starter/domain";
 import { useAtom } from "@effect/atom-react";
@@ -20,7 +21,7 @@ import { SiteShell } from "#components/site-shell";
 import { inputAttributes } from "#lib/form";
 import { api } from "#lib/server-api";
 
-import { type Copy, fill, type Locale, messages } from "../i18n";
+import { type Copy, fill, fillCount, type Locale, messages } from "../i18n";
 
 /** `?q=`: the search box's text, trimmed; blank or too long reads as no
  * search. */
@@ -226,6 +227,27 @@ const Home = () => {
   const stores = Route.useLoaderData();
   const copy = messages[locale];
   const query = Option.fromUndefinedOr(q);
+  // A search swaps the list in place while focus stays in the box, so this
+  // region, mounted with the page, announces the new count.
+  const found = Match.value(stores).pipe(
+    Match.when({ status: "ok" }, ({ stores: listed }) =>
+      Option.match(query, {
+        onNone: () =>
+          fillCount(locale, listed.length, {
+            one: copy.storesListedOne,
+            other: copy.storesListedOther,
+          }),
+        onSome: (text) =>
+          fillCount(
+            locale,
+            listed.length,
+            { one: copy.storesMatchOne, other: copy.storesMatchOther },
+            { q: text }
+          ),
+      })
+    ),
+    Match.orElse(() => "")
+  );
 
   return (
     <SiteShell locale={locale}>
@@ -244,6 +266,9 @@ const Home = () => {
           search={{ error, verified }}
         />
         <SearchBox copy={copy} locale={locale} query={query} />
+        <VisuallyHidden aria-atomic="true" aria-live="polite" as="div">
+          {found}
+        </VisuallyHidden>
         {Match.value(stores).pipe(
           Match.when({ status: "ok" }, ({ stores: listed }) => (
             <StoreList
