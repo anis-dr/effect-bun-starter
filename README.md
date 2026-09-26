@@ -177,7 +177,15 @@ git grep -n -i -E 'effect-bun-starter|effect_bun_starter'
 
 Update package names, imports, TypeScript configuration references, telemetry service names, Docker configuration, environment examples, and the lockfile together. Then run `bun install` to regenerate workspace metadata and execute the full verification suite.
 
-Replace the Effect Bun Starter name in `apps/web/src/i18n.ts` (`appName`) and set `APP_NAME` for the emails. Add a language by adding it to `locales`, `localeNames` and `messages` in `i18n.ts`, and to `astryx-messages.ts`.
+Replace the Effect Bun Starter name in `apps/web/src/i18n.ts` (`appName`) and set `APP_NAME` for the emails.
+
+To add a language:
+
+1. `apps/web/src/i18n.ts`: add it to `locales` and to the `satisfies` tuple on the same line, then to `localeNames` and `messages`.
+2. `apps/web/src/astryx-messages.ts`: add the Astryx component strings.
+3. `packages/email/src/copy.ts`: add it to `EmailLocale` and `emailLocales`, and write its `emailCopy`.
+4. `packages/auth/src/link-locale.ts` reads the locale of a mailed link against `emailLocales`; add the new locale to the first case of `packages/auth/test/link-locale.test.ts` (the second case's `/de/` stands for a language the app lacks). A locale missing from `emailLocales` gets English mail.
+5. Check it end to end: request a password reset from `/<locale>/forgot-password`; the mail in Mailpit is in the new language and its link opens `/<locale>/reset-password`.
 
 Delete or replace the example resource only after its replacement covers the same database, contract, API, and web boundaries you need.
 

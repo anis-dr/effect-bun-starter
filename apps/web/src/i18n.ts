@@ -1,7 +1,7 @@
 import { Array as Arr, Boolean, Option, Order } from "effect";
 
-/** The app's languages. Adding one is a row here, in `localeNames`,
- * `messages` and `astryx-messages.ts`. */
+/** The app's languages. Adding one touches the web app and the emails;
+ * the steps are in the README ("To add a language"). */
 export const locales = ["en", "fr"] satisfies readonly ["en", "fr"];
 
 export type Locale = (typeof locales)[number];
