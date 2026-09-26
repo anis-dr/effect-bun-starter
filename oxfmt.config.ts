@@ -6,6 +6,20 @@ export default defineConfig({
   ignorePatterns: [
     ...(ultracite.ignorePatterns ?? []),
     "**/dist/**",
+    // drizzle-kit writes these snapshots; formatting them churns every migration.
+    "**/drizzle/**/snapshot.json",
+    // Installed agent skills and agent config are not project source.
+    ".agent/**",
+    ".agents/**",
+    ".claude/**",
+    ".codex/**",
+    ".continue/**",
+    ".cursor/**",
+    ".gemini/**",
+    ".opencode/**",
+    ".pi/**",
+    ".roo/**",
+    ".windsurf/**",
     "tools/oxlint/anti-slop/**",
   ],
 });

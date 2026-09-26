@@ -12,7 +12,10 @@ const authSecretConfig = Config.Redacted("BETTER_AUTH_SECRET").pipe(
 );
 
 const baseURLConfig = Config.URL("BETTER_AUTH_URL").pipe(Config.map(String));
-const trustedOriginConfig = Config.URL("BETTER_AUTH_TRUSTED_ORIGIN").pipe(
+/** The web app's origin: trusted by better-auth and the only CORS origin. */
+export const trustedOriginConfig = Config.URL(
+  "BETTER_AUTH_TRUSTED_ORIGIN"
+).pipe(
   Config.withDefault(new URL("http://localhost:3000")),
   Config.map((url) => url.origin)
 );

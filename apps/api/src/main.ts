@@ -1,3 +1,4 @@
+import { trustedOriginConfig } from "@effect-bun-starter/auth";
 import { DatabaseLive } from "@effect-bun-starter/database";
 import * as NodeSdk from "@effect/opentelemetry/NodeSdk";
 import { BunHttpServer, BunRuntime } from "@effect/platform-bun";
@@ -20,13 +21,17 @@ import {
 import { AppLive } from "./api.js";
 
 const HttpLive = AppLive.pipe(
-  // ponytail: local web origin only; make configurable when deployed origins exist.
+  // The web app's origin, the same one better-auth trusts.
   Layer.provide(
-    HttpRouter.cors({
-      allowedMethods: ["GET", "POST", "OPTIONS"],
-      credentials: true,
-      allowedOrigins: ["http://localhost:3000"],
-    })
+    Layer.unwrap(
+      Effect.map(trustedOriginConfig, (origin) =>
+        HttpRouter.cors({
+          allowedMethods: ["DELETE", "GET", "OPTIONS", "POST", "PUT"],
+          credentials: true,
+          allowedOrigins: [origin],
+        })
+      )
+    )
   )
 );
 

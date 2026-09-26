@@ -6,3 +6,9 @@ node_modules/
 .tsbuild/
 dist/
 *.tsbuildinfo
+
+# Local agent scratch work
+.scratchpad/
+
+# Library sources cloned for agents to read
+.agent-sources
