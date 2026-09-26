@@ -8,12 +8,6 @@ Before writing or reviewing code, read [CODING_STANDARDS.md](CODING_STANDARDS.md
 
 Use Ponytail mode for this project at full intensity.
 
-- Before writing code, ask: does this need to exist, can the standard library do it, can the platform do it natively, or can it be one line?
-- Build the minimum that works; prefer deletion, boring code, and fewer files.
-- Do not add unrequested abstractions, avoidable dependencies, or boilerplate.
-- Mark intentional simplifications with a `ponytail:` comment.
-- Do not simplify away trust-boundary validation, data-loss prevention, security, accessibility basics, or explicit requirements.
-
 ## Principles
 
 Before design, planning, implementation, refactoring, debugging, tests, delegation, or declaring work done, call the Skill tool with "principles" and read every reference whose line matches the task, in full. Name the principles that changed a decision in your reply. This applies to dispatched workers too.
@@ -28,46 +22,17 @@ Before writing HTML, CSS or client-side code, search the `modern-web-guidance` s
 
 The rendering, styling and sizing rules are in [CODING_STANDARDS.md](CODING_STANDARDS.md#web) and [ADR 0015](docs/adr/0015-style-through-the-astryx-ladder.md).
 
-<!-- effect-solutions:start -->
+## Effect
 
-## Effect Best Practices
+Consult the Effect references before writing Effect code:
 
-**IMPORTANT:** Always consult Effect references before writing Effect code.
+1. The `effect-ts` skill first, for Effect v4.
+2. `effect-index` only as a secondary routing aid; it is older and v3-oriented.
+3. `effect-solutions list`, then `effect-solutions show <topic>` (several topics at once): quick-start, project-setup, tsconfig, basics, services-and-layers, data-modeling, error-handling, config, testing, cli.
+4. `~/.local/share/effect-solutions/effect` for real Effect v4 source when the docs are not enough.
+5. Effect Patterns for concrete implementation examples.
 
-1. Use the `effect-ts` skill first for Effect v4 guidance.
-2. Use `effect-index` only as a secondary routing aid; it is helpful but older/v3-oriented.
-3. Run `effect-solutions list` to see available guides.
-4. Run `effect-solutions show <topic>` for relevant patterns. It supports multiple topics.
-5. Search `~/.local/share/effect-solutions/effect` for real Effect v4 implementations when documentation is not enough.
-6. Consult Effect Patterns for concrete implementation examples.
-
-Topics: quick-start, project-setup, tsconfig, basics, services-and-layers, data-modeling, error-handling, config, testing, cli.
-
-Schema policy:
-
-- Prefer Effect Schema as the primary schema system.
-- Use JSON Schema as the bridge when Zod interoperability is needed.
-- Do not make Zod a parallel domain modeling source.
-
-Function style:
-
-- Prefer `Effect.fn` for named effectful functions and service methods.
-- Use raw `Effect.gen` only for small local composition where a named function would add noise.
-
-Config policy:
-
-- Use `Config.*` from Effect for environment variables.
-- Do not read `process.env` or `Bun.env` directly in application code; direct env access belongs only inside an explicit `ConfigProvider` adapter.
-
-Typecheck policy:
-
-- Code workspaces must typecheck source and tests.
-- Use `tsconfig.json` for source checks and `tsconfig.test.json` for no-emit test checks.
-- Package `typecheck` scripts run `tsc --noEmit` for both configs; turbo builds the referenced packages' declarations first (`typecheck` depends on `^build`), so a clean checkout typechecks. Config-only packages do not need fake typecheck scripts.
-
-Never guess at Effect patterns. Check the references first.
-
-<!-- effect-solutions:end -->
+The Effect rules this repo follows (Schema, `Effect.fn`, `Config`, typecheck) are in [CODING_STANDARDS.md](CODING_STANDARDS.md#code).
 
 <!-- ASTRYX:START -->
 Astryx v0.6.3 · 90+ components
