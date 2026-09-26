@@ -3,7 +3,8 @@ export type EmailLocale = "en" | "fr";
 /** The locales emails are written in; the first is the fallback. */
 export const emailLocales: readonly EmailLocale[] = ["en", "fr"];
 
-interface ResetPasswordCopy {
+/** The words of an email built on `LinkEmail`. */
+export interface LinkEmailCopy {
   readonly action: string;
   readonly body: (appName: string) => string;
   readonly expiry: string;
@@ -27,6 +28,17 @@ export const emailCopy = {
         `Choose a new password for your ${appName} account.`,
       subject: "Reset your password",
     },
+    verifyEmail: {
+      action: "Confirm my email",
+      body: (appName) =>
+        `Confirm that this address is yours to finish setting up your ${appName} account.`,
+      expiry: "This link expires in one hour.",
+      greeting: (name) => `Hello ${name},`,
+      ignore:
+        "If you didn't create an account, ignore this email: nothing changes until the address is confirmed.",
+      preview: (appName) => `Confirm your email for your ${appName} account.`,
+      subject: "Confirm your email",
+    },
   },
   fr: {
     resetPassword: {
@@ -41,5 +53,23 @@ export const emailCopy = {
         `Choisissez un nouveau mot de passe pour votre compte ${appName}.`,
       subject: "Réinitialisez votre mot de passe",
     },
+    verifyEmail: {
+      action: "Confirmer mon adresse",
+      body: (appName) =>
+        `Confirmez que cette adresse est bien la vôtre pour terminer la création de votre compte ${appName}.`,
+      expiry: "Ce lien expire dans une heure.",
+      greeting: (name) => `Bonjour ${name},`,
+      ignore:
+        "Si vous n’avez pas créé de compte, ignorez cet e-mail : rien ne change tant que l’adresse n’est pas confirmée.",
+      preview: (appName) =>
+        `Confirmez votre adresse e-mail pour votre compte ${appName}.`,
+      subject: "Confirmez votre adresse e-mail",
+    },
   },
-} satisfies Record<EmailLocale, { readonly resetPassword: ResetPasswordCopy }>;
+} satisfies Record<
+  EmailLocale,
+  {
+    readonly resetPassword: LinkEmailCopy;
+    readonly verifyEmail: LinkEmailCopy;
+  }
+>;

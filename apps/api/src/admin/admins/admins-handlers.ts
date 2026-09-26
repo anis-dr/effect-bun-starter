@@ -1,6 +1,7 @@
 import { admins, Database, eq, user } from "@effect-bun-starter/database";
 import {
   AccountNotFound,
+  AccountNotVerified,
   AdminUnavailable,
   allow,
   Api,
@@ -40,7 +41,7 @@ export const adminAdminsLayer = HttpApiBuilder.group(
           yield* allow("admin.appoint");
           const db = yield* Database;
           const [account] = yield* db
-            .select(adminFields)
+            .select({ ...adminFields, emailVerified: user.emailVerified })
             .from(user)
             .where(eq(user.email, payload.email.toLowerCase()))
             .pipe(Effect.catch(unavailable));
@@ -50,12 +51,17 @@ export const adminAdminsLayer = HttpApiBuilder.group(
                 new AccountNotFound({ message: "No account has this email" })
             )
           );
+          if (!found.emailVerified) {
+            return yield* new AccountNotVerified({
+              message: "This account has not verified its email",
+            });
+          }
           yield* db
             .insert(admins)
             .values({ userId: found.userId })
             .onConflictDoNothing()
             .pipe(Effect.catch(unavailable));
-          return found;
+          return { email: found.email, name: found.name, userId: found.userId };
         }).pipe(Effect.withSpan("AdminAdmins.appoint"))
       )
       .handle("remove", ({ params }) =>

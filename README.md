@@ -35,7 +35,7 @@ bun run dev
 Before starting the apps:
 
 1. Replace the `BETTER_AUTH_SECRET` placeholder in `.env` with a cryptographically random value containing at least 32 characters.
-2. Set `SUPERADMIN_EMAIL` to your own email, then create an account with it at http://localhost:3000/en/sign-in?mode=signUp. That account opens the admin area and appoints other admins.
+2. Set `SUPERADMIN_EMAIL` to your own email, then create an account with it at http://localhost:3000/en/sign-in?mode=signUp and open the confirmation link it mails you (Mailpit: http://localhost:8025). Once the address is confirmed, that account opens the admin area and appoints other admins; only accounts with a confirmed email can be appointed.
 
 Password-reset and other account email goes to the local Mailpit inbox at http://localhost:8025. Preview and edit the email templates with `bun run email:dev` (http://localhost:3005).
 

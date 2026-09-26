@@ -9,6 +9,7 @@ import {
   FileSystem,
   Layer,
   Option,
+  Schedule,
   Schema,
 } from "effect";
 import { HttpRouter } from "effect/unstable/http";
@@ -118,9 +119,12 @@ const SignUpResponse = Schema.Struct({
 });
 
 /** Creates an account through Better Auth, as the web app does, and returns
- * its session cookie. */
+ * its session cookie. Mail recorded for an earlier account with this email
+ * is dropped, so `mailTo` sees only this account's. */
 export const signUp = Effect.fn("TestApp.signUp")(function* (email: string) {
   const app = yield* TestApp;
+  const kept = sentMail.filter((mail) => mail.to !== email);
+  sentMail.splice(0, sentMail.length, ...kept);
   const response = yield* app.request(
     new Request("http://localhost:3002/api/auth/sign-up/email", {
       body: encodeJson({ email, name: "Test Account", password: "Test123!pw" }),
@@ -138,4 +142,41 @@ export const signUp = Effect.fn("TestApp.signUp")(function* (email: string) {
   );
   assert(Option.isSome(cookie));
   return { cookie: cookie.value, email, userId: body.user.id };
+});
+
+/** The mails sent to `to` whose subject is `subject`; waits until at least
+ * one arrived, since Better Auth sends them in the background (tests that
+ * wait need the real clock: `excludeTestServices`). */
+export const mailTo = Effect.fn("TestApp.mailTo")(function* (
+  to: string,
+  subject: string
+) {
+  return yield* Effect.suspend(() =>
+    Effect.succeed(
+      sentMail.filter(
+        (mail) => mail.to === to && mail.email.subject === subject
+      )
+    )
+  ).pipe(
+    Effect.filterOrFail((mails) => mails.length > 0),
+    Effect.retry({ schedule: Schedule.spaced("20 millis"), times: 100 })
+  );
+});
+
+/** Opens the verification link mailed to `email` at sign-up, as its owner
+ * does from the inbox. */
+export const verifyEmail = Effect.fn("TestApp.verifyEmail")(function* (
+  email: string
+) {
+  const app = yield* TestApp;
+  const [mail] = yield* mailTo(email, "Confirm your email");
+  assert.isDefined(mail);
+  const link = Option.fromNullishOr(
+    /http:\/\/localhost:3002\/api\/auth\/verify-email\?[^\s\]]+/u.exec(
+      mail.email.text
+    )
+  );
+  assert(Option.isSome(link));
+  const response = yield* app.request(new Request(link.value[0]));
+  assert.strictEqual(response.status, 302);
 });

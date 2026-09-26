@@ -8,6 +8,7 @@ import {
   encodeJson,
   signUp,
   testSuperadminEmail,
+  verifyEmail,
 } from "./test-app.js";
 
 const ErrorResponse = Schema.Struct({ _tag: Schema.String });
@@ -89,7 +90,10 @@ const signedInOnly = [
   ["GET", "/admin/session", Option.none()],
 ] satisfies ReadonlyArray<Call>;
 
-layer(Layer.merge(TestApp.layer, Database.layer))((it) => {
+// The real clock: waiting for a background verification mail sleeps.
+layer(Layer.merge(TestApp.layer, Database.layer), {
+  excludeTestServices: true,
+})((it) => {
   it.effect("refuses signed-out requests with 401", () =>
     Effect.gen(function* () {
       for (const [method, path, body] of signedInOnly) {
@@ -122,6 +126,37 @@ layer(Layer.merge(TestApp.layer, Database.layer))((it) => {
   );
 
   it.effect(
+    "makes the SUPERADMIN_EMAIL account superadmin only once it proves the address",
+    () =>
+      Effect.gen(function* () {
+        yield* testEmails([]);
+        const claimant = yield* signUp(testSuperadminEmail);
+
+        const unverified = yield* call(
+          "GET",
+          "/admin/session",
+          claimant.cookie
+        );
+        assert.deepStrictEqual(yield* decodeJson(RoleResponse, unverified), {
+          role: "member",
+        });
+        for (const [method, path, body] of adminOnly) {
+          assert.deepStrictEqual(
+            yield* refusal(yield* call(method, path, claimant.cookie, body)),
+            [403, "Forbidden"],
+            `${method} ${path}`
+          );
+        }
+
+        yield* verifyEmail(testSuperadminEmail);
+        const verified = yield* call("GET", "/admin/session", claimant.cookie);
+        assert.deepStrictEqual(yield* decodeJson(RoleResponse, verified), {
+          role: "superadmin",
+        });
+      })
+  );
+
+  it.effect(
     "lets the superadmin appoint and remove an admin who creates stores",
     () =>
       Effect.gen(function* () {
@@ -129,6 +164,7 @@ layer(Layer.merge(TestApp.layer, Database.layer))((it) => {
         const storeName = `Corner Shop ${candidateEmail}`;
         yield* removeStoresNamed([storeName]);
         const superadmin = yield* signUp(testSuperadminEmail);
+        yield* verifyEmail(testSuperadminEmail);
         const candidate = yield* signUp(candidateEmail);
         const expectedAdmin = {
           email: candidateEmail,
@@ -156,6 +192,19 @@ layer(Layer.merge(TestApp.layer, Database.layer))((it) => {
           ),
           [404, "AccountNotFound"]
         );
+        // An address nobody has proven is not appointed.
+        assert.deepStrictEqual(
+          yield* refusal(
+            yield* call(
+              "POST",
+              "/admin/admins",
+              superadmin.cookie,
+              Option.some({ email: candidateEmail })
+            )
+          ),
+          [409, "AccountNotVerified"]
+        );
+        yield* verifyEmail(candidateEmail);
 
         // Appointing twice answers the same admin both times.
         for (const email of [candidateEmail, candidateEmail.toUpperCase()]) {

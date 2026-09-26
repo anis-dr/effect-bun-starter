@@ -17,10 +17,78 @@ import { useRef } from "react";
 
 import { PendingPage, SiteShell } from "#components/site-shell";
 import { ApiClient } from "#lib/api-client";
-import { authFailureMessage, signOutAtom } from "#lib/auth-client";
+import {
+  authCall,
+  authClient,
+  authFailureMessage,
+  signOutAtom,
+} from "#lib/auth-client";
 import { signedInOrSignIn } from "#lib/session-state";
+import { siteOrigin } from "#lib/site-path";
 
-import { type Copy, documentTitle, messages } from "../i18n";
+import { type Copy, documentTitle, fill, type Locale, messages } from "../i18n";
+
+/** Mails the account a new confirmation link, landing in `locale`. */
+const resendVerificationAtom = Atom.fn(
+  Effect.fn("Account.resendVerification")(function* (input: {
+    readonly email: string;
+    readonly locale: Locale;
+  }) {
+    yield* authCall(() =>
+      authClient.sendVerificationEmail({
+        callbackURL: `${siteOrigin()}/${input.locale}?verified=1`,
+        email: input.email,
+      })
+    );
+  })
+);
+
+/** An unconfirmed email: what it holds back, and a new link. */
+const EmailVerification = ({
+  copy,
+  email,
+  locale,
+}: {
+  readonly copy: Copy;
+  readonly email: string;
+  readonly locale: Locale;
+}) => {
+  const [result, resend] = useAtom(resendVerificationAtom);
+  return (
+    <VStack gap={3}>
+      {AsyncResult.builder(result)
+        .onSuccess(() => (
+          <Banner
+            status="success"
+            title={fill(copy.verificationSent, { email })}
+          />
+        ))
+        .orElse(() => (
+          <Banner
+            description={fill(copy.emailUnverifiedDescription, { email })}
+            endContent={
+              <Button
+                isLoading={result.waiting}
+                label={copy.requestNewLink}
+                onClick={() => resend({ email, locale })}
+                variant="secondary"
+              />
+            }
+            status="info"
+            title={copy.emailUnverified}
+          />
+        ))}
+      {AsyncResult.builder(result)
+        .onFailure((cause) => (
+          <Banner
+            status="error"
+            title={authFailureMessage(copy, cause, copy.verificationSendFailed)}
+          />
+        ))
+        .orNull()}
+    </VStack>
+  );
+};
 
 /** Uploads `file` as the account's avatar. A file over the API's limit is
  * refused here with the API's own error, without sending it. */
@@ -127,6 +195,16 @@ const Account = () => {
             {user.email}
           </Text>
         </VStack>
+        {Option.getOrNull(
+          Option.liftPredicate(
+            <EmailVerification
+              copy={copy}
+              email={user.email}
+              locale={locale}
+            />,
+            () => !user.emailVerified
+          )
+        )}
         <VStack gap={4}>
           <Heading level={2}>{copy.avatarHeading}</Heading>
           <HStack align="center" gap={6} wrap="wrap">

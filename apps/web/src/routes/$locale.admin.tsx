@@ -192,6 +192,19 @@ const adminsAtom = ApiClient.query("adminAdmins", "list", {
   reactivityKeys: ["admins"],
 });
 const appointAtom = ApiClient.mutation("adminAdmins", "appoint");
+
+/** The email field's message for a refusal about the account it names. */
+const appointRefusal = (
+  copy: Copy,
+  cause: Cause.Cause<{ readonly _tag: string }>
+) =>
+  Option.flatMap(Cause.findErrorOption(cause), (failure) =>
+    Match.value(failure).pipe(
+      Match.tag("AccountNotFound", () => copy.appointNotFound),
+      Match.tag("AccountNotVerified", () => copy.appointNotVerified),
+      Match.option
+    )
+  );
 const removeAdminAtom = ApiClient.mutation("adminAdmins", "remove");
 const adminsNoticeAtom = Atom.make(Option.none<Notice>());
 // The admin the removal confirmation is about. It outlives the dialog's
@@ -222,29 +235,21 @@ const AppointAdmin = ({ copy }: { readonly copy: Copy }) => {
           Effect.map((exit) =>
             Exit.match(exit, {
               onFailure: (cause) =>
-                Option.match(
-                  Option.filter(
-                    Cause.findErrorOption(cause),
-                    (failure) => failure._tag === "AccountNotFound"
-                  ),
-                  {
-                    onNone: () => {
-                      setNotice(
-                        Option.some({
-                          status: "error",
-                          title: copy.appointFailed,
-                        })
-                      );
-                      return Option.none();
-                    },
-                    onSome: () =>
-                      Option.some(
-                        createValidationError({
-                          fields: { email: copy.appointNotFound },
-                        })
-                      ),
-                  }
-                ),
+                Option.match(appointRefusal(copy, cause), {
+                  onNone: () => {
+                    setNotice(
+                      Option.some({
+                        status: "error",
+                        title: copy.appointFailed,
+                      })
+                    );
+                    return Option.none();
+                  },
+                  onSome: (message) =>
+                    Option.some(
+                      createValidationError({ fields: { email: message } })
+                    ),
+                }),
               onSuccess: (admin) => {
                 formApi.reset();
                 setNotice(

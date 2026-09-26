@@ -33,13 +33,16 @@ const superadminEmailConfig = Config.option(
 );
 
 /** An account's role, most powerful first. Better Auth stores emails in
- * lower case. The subquery names its tables in full: Drizzle drops the
- * qualifier on single-table selects, which would make `id` ambiguous. */
+ * lower case. The superadmin's email must be verified: anyone can sign up
+ * with any address, and only the verification link proves who owns it.
+ * The subquery names its tables in full: Drizzle drops the qualifier on
+ * single-table selects, which would make `id` ambiguous. */
 const roleOf = (superadminEmail: Option.Option<string>) =>
   sql<Role>`case
     when ${Option.match(superadminEmail, {
       onNone: () => sql`false`,
-      onSome: (email) => sql`${user.email} = ${email}`,
+      onSome: (email) =>
+        sql`${user.email} = ${email} and ${user.emailVerified}`,
     })} then 'superadmin'
     when exists (select 1 from "admins" where "admins"."user_id" = "user"."id") then 'admin'
     else 'member' end`;

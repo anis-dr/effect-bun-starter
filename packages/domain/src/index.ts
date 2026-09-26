@@ -24,6 +24,7 @@ export {
 export { AdminSessionResponse } from "./api/admin-session-contract.js";
 export {
   AccountNotFound,
+  AccountNotVerified,
   AdminResponse,
   AdminUnavailable,
   AppointAdminRequest,

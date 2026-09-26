@@ -35,7 +35,7 @@ import {
   schemaValidator,
 } from "#lib/form";
 import { getSession, type Session } from "#lib/session-state";
-import { encodedSitePath, SitePath } from "#lib/site-path";
+import { encodedSitePath, SitePath, siteOrigin } from "#lib/site-path";
 
 import { type Copy, documentTitle, type Locale, messages } from "../i18n";
 
@@ -43,6 +43,7 @@ type AuthenticationMode = "signIn" | "signUp";
 
 interface AuthenticationInput {
   readonly email: string;
+  readonly locale: Locale;
   readonly mode: AuthenticationMode;
   readonly name: string;
   readonly password: string;
@@ -54,6 +55,9 @@ const authenticateAtom = Atom.fn<AuthenticationInput>()(
       Match.when("signUp", () =>
         authCall(() =>
           authClient.signUp.email({
+            // The confirmation link lands on the home page in this language,
+            // which says whether it worked.
+            callbackURL: `${siteOrigin()}/${input.locale}?verified=1`,
             email: input.email,
             name: input.name,
             password: input.password,
@@ -69,6 +73,7 @@ const authenticateAtom = Atom.fn<AuthenticationInput>()(
         )
       )
     );
+    return input;
   })
 );
 
@@ -158,6 +163,45 @@ const afterSignIn = (
     onSome: encodedSitePath,
   });
 
+/** Signed up: the account is ready, and its confirmation link is on the
+ * way. It replaces the form, so its heading takes focus and is read out. */
+const SignedUp = ({
+  copy,
+  email,
+  next,
+}: {
+  readonly copy: Copy;
+  readonly email: string;
+  readonly next: string;
+}) => (
+  <VStack gap={6}>
+    <VStack gap={2}>
+      <Heading
+        level={1}
+        ref={focusOnMount}
+        tabIndex={-1}
+        textWrap="balance"
+        xstyle={focusedMessage.target}
+      >
+        {copy.signUpSentTitle}
+      </Heading>
+      <Text as="p" color="secondary" textWrap="pretty">
+        {copy.signUpSentDescription}
+      </Text>
+      <Text as="p" dir="auto" weight="semibold">
+        {email}
+      </Text>
+    </VStack>
+    <Button
+      href={next}
+      label={copy.continue}
+      size="lg"
+      variant="primary"
+      width="100%"
+    />
+  </VStack>
+);
+
 /** Already signed in: go on to `href` instead. */
 const leaveWhenSignedIn = (href: string) => (session: Session) =>
   Match.value(session).pipe(
@@ -185,9 +229,15 @@ const Authentication = ({
   const { redirect: next } = Route.useSearch();
   // Signed in: read the header's account again, then go on. The page
   // navigates itself: a redirect from its loader during the reload would cut
-  // the account read short, and the header would stay signed out.
+  // the account read short, and the header would stay signed out. Signed up:
+  // the header reads the new account too, but the page stays to say that a
+  // confirmation link was sent (`SignedUp`).
   useAtomSubscribe(authenticateAtom, (result) => {
-    if (AsyncResult.isSuccess(result)) {
+    if (AsyncResult.isSuccess(result) && result.value.mode === "signUp") {
+      void router.invalidate({
+        filter: (match) => match.routeId === "/$locale",
+      });
+    } else if (AsyncResult.isSuccess(result)) {
       void Effect.runPromise(
         Effect.promise(() =>
           // `sync`: wait for the new account, not revalidate in the
@@ -217,7 +267,7 @@ const Authentication = ({
     defaultValues: emptyAccount,
     errorVisibility: afterBlurOrSubmit,
     onSubmit: ({ schemaOutputs: [account] }) =>
-      authenticate({ ...account, mode }),
+      authenticate({ ...account, locale, mode }),
     onSubmitInvalid: () => focusFirstInvalid(formElement.current),
     validators,
   });
@@ -234,132 +284,150 @@ const Authentication = ({
     ))
     .orNull();
 
-  return (
-    <form
-      method="post"
-      noValidate
-      onSubmit={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        void form.handleSubmit();
-      }}
-      ref={(element) => {
-        formElement.current = Option.fromNullishOr(element);
-      }}
-    >
-      <VStack gap={6}>
-        <VStack gap={2}>
-          <Heading level={1} textWrap="balance">
-            {modeCopy.title}
-          </Heading>
-          <Text as="p" color="secondary" textWrap="pretty">
-            {modeCopy.description}
-          </Text>
-        </VStack>
-        {failureView}
-        <FormLayout>
-          {Option.getOrNull(
-            Option.liftPredicate(
-              <form.Field name="name">
+  return Option.match(
+    Option.filter(
+      AsyncResult.value(authenticationResult),
+      (input) => input.mode === "signUp"
+    ),
+    {
+      onSome: (input) => (
+        <SignedUp
+          copy={copy}
+          email={input.email}
+          next={afterSignIn(locale, next)}
+        />
+      ),
+      onNone: () => (
+        <form
+          method="post"
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            void form.handleSubmit();
+          }}
+          ref={(element) => {
+            formElement.current = Option.fromNullishOr(element);
+          }}
+        >
+          <VStack gap={6}>
+            <VStack gap={2}>
+              <Heading level={1} textWrap="balance">
+                {modeCopy.title}
+              </Heading>
+              <Text as="p" color="secondary" textWrap="pretty">
+                {modeCopy.description}
+              </Text>
+            </VStack>
+            {failureView}
+            <FormLayout>
+              {Option.getOrNull(
+                Option.liftPredicate(
+                  <form.Field name="name">
+                    {(field) => (
+                      <TextInput
+                        htmlName={field.name}
+                        label={copy.accountName}
+                        onBlur={field.handleBlur}
+                        onChange={(value) => field.handleChange(value)}
+                        placeholder={copy.accountNamePlaceholder}
+                        ref={inputAttributes({
+                          autocomplete: "name",
+                          enterkeyhint: "next",
+                          required: "",
+                        })}
+                        size="lg"
+                        {...fieldStatusProps(field.errors)}
+                        value={field.value}
+                        width="100%"
+                      />
+                    )}
+                  </form.Field>,
+                  () => mode === "signUp"
+                )
+              )}
+              <form.Field name="email">
                 {(field) => (
                   <TextInput
                     htmlName={field.name}
-                    label={copy.accountName}
+                    label={copy.email}
                     onBlur={field.handleBlur}
                     onChange={(value) => field.handleChange(value)}
-                    placeholder={copy.accountNamePlaceholder}
-                    ref={inputAttributes({
-                      autocomplete: "name",
-                      enterkeyhint: "next",
-                      required: "",
-                    })}
+                    placeholder={copy.emailPlaceholder}
+                    ref={inputAttributes(emailAttributes("next"))}
                     size="lg"
                     {...fieldStatusProps(field.errors)}
+                    type="email"
                     value={field.value}
                     width="100%"
                   />
                 )}
-              </form.Field>,
-              () => mode === "signUp"
-            )
-          )}
-          <form.Field name="email">
-            {(field) => (
-              <TextInput
-                htmlName={field.name}
-                label={copy.email}
-                onBlur={field.handleBlur}
-                onChange={(value) => field.handleChange(value)}
-                placeholder={copy.emailPlaceholder}
-                ref={inputAttributes(emailAttributes("next"))}
-                size="lg"
-                {...fieldStatusProps(field.errors)}
-                type="email"
-                value={field.value}
-                width="100%"
+              </form.Field>
+              <form.Field name="password">
+                {(field) => (
+                  <PasswordInput
+                    autoComplete={modeCopy.password}
+                    {...modeCopy.passwordHint}
+                    errors={field.errors}
+                    hideLabel={copy.hidePassword}
+                    label={copy.password}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                    onChange={(value) => field.handleChange(value)}
+                    placeholder={modeCopy.passwordPlaceholder}
+                    showLabel={copy.showPassword}
+                    value={field.value}
+                  />
+                )}
+              </form.Field>
+              {Option.getOrNull(
+                Option.liftPredicate(
+                  <HStack justify="end">
+                    <Link
+                      href={`/${locale}/forgot-password`}
+                      type="supporting"
+                      xstyle={touchTarget.link}
+                    >
+                      {copy.forgotPassword}
+                    </Link>
+                  </HStack>,
+                  () => mode === "signIn"
+                )
+              )}
+            </FormLayout>
+            <Button
+              isLoading={authenticationResult.waiting}
+              label={modeCopy.action}
+              size="lg"
+              type="submit"
+              variant="primary"
+              width="100%"
+            />
+            <HStack align="center" gap={1} justify="center" wrap="wrap">
+              <Text color="secondary" type="supporting">
+                {modeCopy.switchPrompt}
+              </Text>
+              <Button
+                label={modeCopy.switchLabel}
+                // A fresh start in the other mode: keep what was typed, drop
+                // errors and the last attempt's message.
+                onClick={() => {
+                  authenticate(Atom.Reset);
+                  form.reset(form.state.values);
+                  void navigate({
+                    search: ({ redirect }) => ({
+                      redirect,
+                      ...modeCopy.search,
+                    }),
+                  });
+                }}
+                variant="ghost"
               />
-            )}
-          </form.Field>
-          <form.Field name="password">
-            {(field) => (
-              <PasswordInput
-                autoComplete={modeCopy.password}
-                {...modeCopy.passwordHint}
-                errors={field.errors}
-                hideLabel={copy.hidePassword}
-                label={copy.password}
-                name={field.name}
-                onBlur={field.handleBlur}
-                onChange={(value) => field.handleChange(value)}
-                placeholder={modeCopy.passwordPlaceholder}
-                showLabel={copy.showPassword}
-                value={field.value}
-              />
-            )}
-          </form.Field>
-          {Option.getOrNull(
-            Option.liftPredicate(
-              <HStack justify="end">
-                <Link
-                  href={`/${locale}/forgot-password`}
-                  type="supporting"
-                  xstyle={touchTarget.link}
-                >
-                  {copy.forgotPassword}
-                </Link>
-              </HStack>,
-              () => mode === "signIn"
-            )
-          )}
-        </FormLayout>
-        <Button
-          isLoading={authenticationResult.waiting}
-          label={modeCopy.action}
-          size="lg"
-          type="submit"
-          variant="primary"
-          width="100%"
-        />
-        <HStack align="center" gap={1} justify="center" wrap="wrap">
-          <Text color="secondary" type="supporting">
-            {modeCopy.switchPrompt}
-          </Text>
-          <Button
-            label={modeCopy.switchLabel}
-            // A fresh start in the other mode: keep what was typed, drop
-            // errors and the last attempt's message.
-            onClick={() => {
-              authenticate(Atom.Reset);
-              form.reset(form.state.values);
-              void navigate({
-                search: ({ redirect }) => ({ redirect, ...modeCopy.search }),
-              });
-            }}
-            variant="ghost"
-          />
-        </HStack>
-      </VStack>
-    </form>
+            </HStack>
+          </VStack>
+        </form>
+      ),
+    }
   );
 };
 

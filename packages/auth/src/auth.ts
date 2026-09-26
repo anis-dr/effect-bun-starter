@@ -1,4 +1,10 @@
-import { Mailer, renderResetPasswordEmail } from "@effect-bun-starter/email";
+import {
+  type LinkEmailProps,
+  Mailer,
+  type RenderedEmail,
+  renderResetPasswordEmail,
+  renderVerifyEmail,
+} from "@effect-bun-starter/email";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -14,7 +20,7 @@ import {
 import { Pool } from "pg";
 
 import { loadAuthConfig } from "./auth-config.js";
-import { localeOfResetLink } from "./reset-password-link.js";
+import { localeOfLink } from "./link-locale.js";
 import { account, session, user, verification } from "./schema/auth-schema.js";
 
 export class AuthReadError extends Schema.TaggedError<AuthReadError>()(
@@ -57,6 +63,38 @@ const makeAuth = Effect.gen(function* makeAuth() {
   // Better Auth calls back into plain promises; run mail with the layer's
   // services so its spans and logs join the app's tracing.
   const context = yield* Effect.context<never>();
+  /** Mails `render`'s email for the link `url` to `account`, in the
+   * background: awaiting it would let response time reveal whether an
+   * account exists (Better Auth's advice). A failure is logged; the page
+   * tells everyone the same thing. */
+  const mailLink =
+    (
+      render: (
+        props: LinkEmailProps
+      ) => Effect.Effect<RenderedEmail, never, never>
+    ) =>
+    ({
+      url,
+      user: account,
+    }: {
+      readonly url: string;
+      readonly user: { readonly email: string; readonly name: string };
+    }) =>
+      Effect.runPromiseWith(context)(
+        render({
+          appName,
+          locale: localeOfLink(url),
+          name: account.name,
+          url,
+        }).pipe(
+          Effect.flatMap((email) => mailer.send(account.email, email)),
+          Effect.catchCause((cause) =>
+            Effect.logError("Link email failed", cause)
+          ),
+          Effect.forkDetach,
+          Effect.asVoid
+        )
+      );
   const auth = betterAuth({
     advanced: { crossSubDomainCookies: config.crossSubDomainCookies },
     baseURL: config.baseURL,
@@ -69,25 +107,13 @@ const makeAuth = Effect.gen(function* makeAuth() {
       enabled: true,
       // A reset proves control of the email; end every other session.
       revokeSessionsOnPasswordReset: true,
-      // Sent in the background: awaiting it would let response time reveal
-      // whether an account exists (Better Auth's advice). A failure is
-      // logged; the page tells everyone the same thing.
-      sendResetPassword: ({ url, user: account }) =>
-        Effect.runPromiseWith(context)(
-          renderResetPasswordEmail({
-            appName,
-            locale: localeOfResetLink(url),
-            name: account.name,
-            url,
-          }).pipe(
-            Effect.flatMap((email) => mailer.send(account.email, email)),
-            Effect.catchCause((cause) =>
-              Effect.logError("Reset-password email failed", cause)
-            ),
-            Effect.forkDetach,
-            Effect.asVoid
-          )
-        ),
+      sendResetPassword: mailLink(renderResetPasswordEmail),
+    },
+    // Proves the account owns its address; sign-in doesn't wait for it, but
+    // roles picked by email (the superadmin, appointed admins) do.
+    emailVerification: {
+      sendOnSignUp: true,
+      sendVerificationEmail: mailLink(renderVerifyEmail),
     },
     secret: config.secret,
     trustedOrigins: config.trustedOrigins,

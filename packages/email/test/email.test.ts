@@ -2,7 +2,11 @@ import { assert, it, layer } from "@effect/vitest";
 import { Effect, Schema } from "effect";
 import { createTransport, type SendMailOptions } from "nodemailer";
 
-import { Mailer, renderResetPasswordEmail } from "../src/index.js";
+import {
+  Mailer,
+  renderResetPasswordEmail,
+  renderVerifyEmail,
+} from "../src/index.js";
 
 const url = "http://localhost:3002/api/auth/reset-password/token-123";
 
@@ -32,6 +36,35 @@ it.effect("renders the reset email in the account's language", () =>
     assert.include(english.html, 'lang="en"');
     assert.include(english.text, "your Acme account");
   })
+);
+
+it.effect(
+  "renders the address confirmation in the sign-up page's language",
+  () =>
+    Effect.gen(function* () {
+      const link =
+        "http://localhost:3002/api/auth/verify-email?token=verify-123&callbackURL=%2Ffr";
+      const french = yield* renderVerifyEmail({
+        appName: "Acme",
+        locale: "fr",
+        name: "Alex",
+        url: link,
+      });
+      assert.strictEqual(french.subject, "Confirmez votre adresse e-mail");
+      assert.include(french.html, 'lang="fr"');
+      assert.include(french.html, "Confirmer mon adresse");
+      assert.include(french.html, "votre compte Acme");
+      assert.include(french.text, link);
+
+      const english = yield* renderVerifyEmail({
+        appName: "Acme",
+        locale: "en",
+        name: "Alex",
+        url: link,
+      });
+      assert.strictEqual(english.subject, "Confirm your email");
+      assert.include(english.text, "your Acme account");
+    })
 );
 
 class SmtpRefusedError extends Schema.TaggedError<SmtpRefusedError>()(

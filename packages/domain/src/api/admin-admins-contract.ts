@@ -13,6 +13,13 @@ export class AccountNotFound extends Schema.TaggedError<AccountNotFound>()(
   { message: Schema.String }
 ) {}
 
+/** The account hasn't opened its verification link, so its email proves
+ * nothing yet: anyone can sign up with any address. */
+export class AccountNotVerified extends Schema.TaggedError<AccountNotVerified>()(
+  "AccountNotVerified",
+  { message: Schema.String }
+) {}
+
 export class AdminUnavailable extends Schema.TaggedError<AdminUnavailable>()(
   "AdminUnavailable",
   { message: Schema.String }
@@ -44,11 +51,13 @@ export const Group = HttpApiGroup.make("adminAdmins")
     })
   )
   .add(
-    /** Appointing an admin again answers the same admin. */
+    /** Only an account with a verified email is appointed. Appointing an
+     * admin again answers the same admin. */
     HttpApiEndpoint.post("appoint", "/admin/admins", {
       error: [
         ForbiddenResponse,
         HttpApiSchema.status(404)(AccountNotFound),
+        HttpApiSchema.status(409)(AccountNotVerified),
         UnavailableResponse,
       ],
       payload: AppointAdminRequest,

@@ -104,9 +104,11 @@ const english = {
   appointAction: "Appoint admin",
   appointed: "{name} is now an admin.",
   appointEmail: "Account email",
-  appointEmailHint: "The person needs an account first.",
+  appointEmailHint: "The person needs an account with a confirmed email.",
   appointFailed: "The admin couldn’t be appointed. Try again.",
   appointNotFound: "No account uses this email.",
+  appointNotVerified:
+    "This account hasn’t confirmed its email yet. Ask them to open the link they were sent.",
   cancel: "Cancel",
   createStore: "Create a store",
   createStoreAction: "Create store",
@@ -136,6 +138,11 @@ const english = {
   imageUnsupported: "Choose a JPEG, PNG or WebP image.",
   signOutDescription:
     "Sign out of this browser. Your other devices stay signed in.",
+  emailUnverified: "Your email isn’t confirmed yet",
+  emailUnverifiedDescription:
+    "Open the link we sent to {email}. Admin roles need a confirmed email.",
+  verificationSendFailed: "The link couldn’t be sent. Try again.",
+  verificationSent: "A new link is on its way to {email}.",
   allStores: "All stores",
   clearSearch: "Show all stores",
   homeHeading: "Stores",
@@ -150,6 +157,10 @@ const english = {
   storesNoMatchDescription: "Check the spelling or try fewer words.",
   storesNoMatchTitle: "Nothing matches “{q}”",
   storesUnavailable: "The stores couldn’t be loaded. Try again in a moment.",
+  emailVerified: "Your email is confirmed.",
+  emailVerifyFailed: "This confirmation link no longer works",
+  emailVerifyFailedDescription:
+    "Links expire after an hour. Send a new one from your account page.",
   account: "Account",
   accountName: "Name",
   accountNamePlaceholder: "Your full name",
@@ -162,6 +173,7 @@ const english = {
   authTooManyAttempts: "Too many attempts. Wait a minute, then try again.",
   backHome: "Back to home",
   backToSignIn: "Back to sign in",
+  continue: "Continue",
   createAccount: "Create an account",
   createAccountAction: "Create my account",
   createAccountDescription: "It takes an email and a password.",
@@ -207,6 +219,9 @@ const english = {
   signInAction: "Sign in",
   signInDescription: "Good to see you again.",
   signOut: "Sign out",
+  signUpSentDescription:
+    "Your account is ready. To confirm your address, open the link we sent to:",
+  signUpSentTitle: "Check your inbox",
   siteDescription:
     "An Effect, Bun and TanStack Start app with a typed API client.",
   themeMatchSystem: "Match the system theme",
@@ -234,9 +249,12 @@ export const messages = {
     appointAction: "Nommer administrateur",
     appointed: "{name} a désormais le rôle d’administrateur.",
     appointEmail: "E-mail du compte",
-    appointEmailHint: "La personne doit d’abord avoir un compte.",
+    appointEmailHint:
+      "La personne doit d’abord avoir un compte à l’e-mail confirmé.",
     appointFailed: "Le rôle n’a pas pu être attribué. Réessayez.",
     appointNotFound: "Aucun compte n’utilise cet e-mail.",
+    appointNotVerified:
+      "Ce compte n’a pas encore confirmé son e-mail. Demandez à la personne d’ouvrir le lien reçu.",
     cancel: "Annuler",
     createStore: "Créer une boutique",
     createStoreAction: "Créer la boutique",
@@ -266,6 +284,11 @@ export const messages = {
     imageUnsupported: "Choisissez une image JPEG, PNG ou WebP.",
     signOutDescription:
       "Déconnectez-vous de ce navigateur. Vos autres appareils restent connectés.",
+    emailUnverified: "Votre adresse e-mail n’est pas encore confirmée",
+    emailUnverifiedDescription:
+      "Ouvrez le lien envoyé à {email}. Les rôles d’administration exigent une adresse confirmée.",
+    verificationSendFailed: "Le lien n’a pas pu être envoyé. Réessayez.",
+    verificationSent: "Un nouveau lien est en route vers {email}.",
     allStores: "Toutes les boutiques",
     clearSearch: "Voir toutes les boutiques",
     homeHeading: "Boutiques",
@@ -282,6 +305,10 @@ export const messages = {
     storesNoMatchTitle: "Aucun résultat pour «\u00a0{q}\u00a0»",
     storesUnavailable:
       "Les boutiques n’ont pas pu être chargées. Réessayez dans un instant.",
+    emailVerified: "Votre adresse e-mail est confirmée.",
+    emailVerifyFailed: "Ce lien de confirmation ne fonctionne plus",
+    emailVerifyFailedDescription:
+      "Les liens expirent au bout d’une heure. Demandez-en un nouveau depuis votre compte.",
     account: "Compte",
     accountName: "Nom",
     accountNamePlaceholder: "Votre nom complet",
@@ -296,6 +323,7 @@ export const messages = {
       "Trop de tentatives. Patientez une minute, puis réessayez.",
     backHome: "Retour à l’accueil",
     backToSignIn: "Retour à la connexion",
+    continue: "Continuer",
     createAccount: "Créer un compte",
     createAccountAction: "Créer mon compte",
     createAccountDescription: "Il suffit d’un e-mail et d’un mot de passe.",
@@ -342,6 +370,9 @@ export const messages = {
     signInAction: "Se connecter",
     signInDescription: "Ravi de vous revoir.",
     signOut: "Se déconnecter",
+    signUpSentDescription:
+      "Votre compte est prêt. Pour confirmer votre adresse, ouvrez le lien envoyé à\u00a0:",
+    signUpSentTitle: "Consultez votre boîte de réception",
     siteDescription:
       "Une application Effect, Bun et TanStack Start avec un client d’API typé.",
     themeMatchSystem: "Suivre le thème du système",

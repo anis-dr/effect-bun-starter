@@ -9,9 +9,11 @@ import { apiBaseUrl } from "./api-client";
 import { api, withCookie } from "./server-api";
 
 /** The signed-in account as Better Auth's get-session returns it; `image`
- * is the avatar's URL, or null without one. */
+ * is the avatar's URL, or null without one; `emailVerified` turns true once
+ * the account opens its confirmation link. */
 const User = Schema.Struct({
   email: Schema.String,
+  emailVerified: Schema.Boolean,
   id: Schema.String,
   image: Schema.optional(Schema.NullOr(Schema.String)),
   name: Schema.String,

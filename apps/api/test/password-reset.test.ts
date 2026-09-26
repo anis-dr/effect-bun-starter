@@ -1,8 +1,8 @@
 import { Database, inArray, user } from "@effect-bun-starter/database";
 import { assert, layer } from "@effect/vitest";
-import { Effect, Layer, Option, Schedule } from "effect";
+import { Effect, Layer, Option } from "effect";
 
-import { TestApp, encodeJson, sentMail, signUp } from "./test-app.js";
+import { TestApp, encodeJson, mailTo, signUp } from "./test-app.js";
 
 const post = Effect.fn("PasswordResetTest.post")(function* (
   path: string,
@@ -18,17 +18,6 @@ const post = Effect.fn("PasswordResetTest.post")(function* (
       },
       method: "POST",
     })
-  );
-});
-
-/** The mails sent to `to` so far; waits until at least one arrived, since
- * Better Auth sends them in the background. */
-const mailTo = Effect.fn("PasswordResetTest.mailTo")(function* (to: string) {
-  return yield* Effect.suspend(() =>
-    Effect.succeed(sentMail.filter((mail) => mail.to === to))
-  ).pipe(
-    Effect.filterOrFail((mails) => mails.length > 0),
-    Effect.retry({ schedule: Schedule.spaced("20 millis"), times: 100 })
   );
 });
 
@@ -54,7 +43,7 @@ layer(Layer.merge(TestApp.layer, Database.layer), {
         });
         assert.strictEqual(requested.status, 200);
 
-        const mails = yield* mailTo(email);
+        const mails = yield* mailTo(email, "Réinitialisez votre mot de passe");
         assert.strictEqual(mails.length, 1);
         const [mail] = mails;
         assert.isDefined(mail);

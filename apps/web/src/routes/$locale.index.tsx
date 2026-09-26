@@ -27,6 +27,49 @@ import { type Copy, fill, type Locale, messages } from "../i18n";
 const decodeQuery = Schema.decodeUnknownOption(StoresQuery.fields.q);
 const HomeSearch = Schema.Struct({ q: Schema.optional(Schema.String) });
 
+/** Where an email confirmation link lands: sign-up asks for `?verified=1`,
+ * and Better Auth adds `error=` when the link was bad or expired. */
+const VerificationSearch = Schema.Struct({
+  error: Schema.optional(Schema.String),
+  verified: Schema.optional(Schema.Literal("1")),
+});
+const decodeVerified = Schema.decodeUnknownOption(
+  VerificationSearch.fields.verified
+);
+const decodeError = Schema.decodeUnknownOption(VerificationSearch.fields.error);
+
+/** The outcome of the confirmation link that brought the visitor here. */
+const VerificationOutcome = ({
+  copy,
+  locale,
+  search,
+}: {
+  readonly copy: Copy;
+  readonly locale: Locale;
+  readonly search: typeof VerificationSearch.Type;
+}) =>
+  Option.getOrNull(
+    Option.map(Option.fromUndefinedOr(search.verified), () =>
+      Option.match(Option.fromUndefinedOr(search.error), {
+        onNone: () => <Banner status="success" title={copy.emailVerified} />,
+        onSome: () => (
+          <Banner
+            description={copy.emailVerifyFailedDescription}
+            endContent={
+              <Button
+                href={`/${locale}/account`}
+                label={copy.account}
+                variant="secondary"
+              />
+            }
+            status="error"
+            title={copy.emailVerifyFailed}
+          />
+        ),
+      })
+    )
+  );
+
 /** What the page shows: the stores the search found, or that the API
  * couldn't answer. */
 type StoreListing =
@@ -179,7 +222,7 @@ const StoreList = ({
 
 const Home = () => {
   const { locale } = Route.useRouteContext();
-  const { q } = Route.useSearch();
+  const { error, q, verified } = Route.useSearch();
   const stores = Route.useLoaderData();
   const copy = messages[locale];
   const query = Option.fromUndefinedOr(q);
@@ -195,6 +238,11 @@ const Home = () => {
             {copy.homeLead}
           </Text>
         </VStack>
+        <VerificationOutcome
+          copy={copy}
+          locale={locale}
+          search={{ error, verified }}
+        />
         <SearchBox copy={copy} locale={locale} query={query} />
         {Match.value(stores).pipe(
           Match.when({ status: "ok" }, ({ stores: listed }) => (
@@ -219,13 +267,17 @@ export const Route = createFileRoute("/$locale/")({
   loaderDeps: ({ search }) => ({ q: search.q }),
   loader: ({ deps }) => getStores({ data: deps }),
   validateSearch: (search: {
+    readonly error?: unknown;
     readonly q?: unknown;
-  }): typeof HomeSearch.Type => ({
+    readonly verified?: unknown;
+  }): typeof HomeSearch.Type & typeof VerificationSearch.Type => ({
+    error: Option.getOrUndefined(decodeError(search.error)),
     q: Option.getOrUndefined(
       Option.filter(
         Option.flatMap(decodeQuery(search.q), Option.fromUndefinedOr),
         (text) => text !== ""
       )
     ),
+    verified: Option.getOrUndefined(decodeVerified(search.verified)),
   }),
 });
