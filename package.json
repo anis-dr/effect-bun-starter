@@ -34,7 +34,7 @@
     "typecheck": "turbo typecheck"
   },
   "devDependencies": {
-    "@astryxdesign/cli": "0.1.8",
+    "@astryxdesign/cli": "0.6.3",
     "@effect/tsgo": "0.46.1",
     "@oxlint/plugins": "1.85.0",
     "@shekohex/oxc-effect": "0.2.1",
@@ -46,5 +46,9 @@
     "typescript": "catalog:",
     "ultracite": "^7.12.0"
   },
-  "packageManager": "bun@1.4.2"
+  "packageManager": "bun@1.4.2",
+  "patchedDependencies": {
+    "@astryxdesign/cli@0.6.3": "patches/@astryxdesign%2Fcli@0.6.3.patch",
+    "@astryxdesign/core@0.6.3": "patches/@astryxdesign%2Fcore@0.6.3.patch"
+  }
 }
