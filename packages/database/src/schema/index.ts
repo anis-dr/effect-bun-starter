@@ -34,7 +34,7 @@ export const stores = pgTable(
       .$type<StoreId>()
       .primaryKey()
       .default(sql`uuidv7()`),
-    name: text("name").notNull(),
+    name: text("name").notNull().unique(),
   },
   (table) => [
     // Name search (`matchesSearch`); search_text comes from a custom migration.
@@ -45,4 +45,15 @@ export const stores = pgTable(
   ]
 );
 
-export const schema = { stores, user };
+/** Accounts the superadmin appointed as admin. The superadmin itself is
+ * named by `SUPERADMIN_EMAIL` and has no row. */
+export const admins = pgTable("admins", {
+  appointedAt: timestamp("appointed_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+});
+
+export const schema = { admins, stores, user };

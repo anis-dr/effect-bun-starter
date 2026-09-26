@@ -1,6 +1,7 @@
 import { Database } from "@effect-bun-starter/database";
 import * as BunHttpServer from "@effect/platform-bun/BunHttpServer";
-import { Context, Effect, Layer, Schema } from "effect";
+import { assert } from "@effect/vitest";
+import { ConfigProvider, Context, Effect, Layer, Option, Schema } from "effect";
 import { HttpRouter } from "effect/unstable/http";
 
 import { appLayer } from "../src/api.js";
@@ -10,9 +11,18 @@ class TestAppOpenError extends Schema.TaggedError<TestAppOpenError>()(
   { cause: Schema.Defect() }
 ) {}
 
+/** The account the test app treats as superadmin (`SUPERADMIN_EMAIL`). */
+export const testSuperadminEmail = "superadmin@test.example.com";
+
 const testAppLayer = appLayer.pipe(
   Layer.provideMerge(Database.layer),
-  Layer.provide(BunHttpServer.layerHttpServices)
+  Layer.provide(BunHttpServer.layerHttpServices),
+  Layer.provide(
+    ConfigProvider.layerAdd(
+      ConfigProvider.fromUnknown({ SUPERADMIN_EMAIL: testSuperadminEmail }),
+      { asPrimary: true }
+    )
+  )
 );
 
 const acquireApp = Effect.try({
@@ -50,4 +60,31 @@ export const decodeJson = Effect.fn("TestApp.decodeJson")(function* <A, I, R>(
 ) {
   const body = yield* Effect.promise(() => response.json());
   return yield* Schema.decodeUnknownEffect(schema)(body);
+});
+
+const SignUpResponse = Schema.Struct({
+  user: Schema.Struct({ id: Schema.String }),
+});
+
+/** Creates an account through Better Auth, as the web app does, and returns
+ * its session cookie. */
+export const signUp = Effect.fn("TestApp.signUp")(function* (email: string) {
+  const app = yield* TestApp;
+  const response = yield* app.request(
+    new Request("http://localhost:3002/api/auth/sign-up/email", {
+      body: encodeJson({ email, name: "Test Account", password: "Test123!pw" }),
+      headers: {
+        "content-type": "application/json",
+        origin: "http://localhost:3000",
+      },
+      method: "POST",
+    })
+  );
+  assert.strictEqual(response.status, 200);
+  const body = yield* decodeJson(SignUpResponse, response);
+  const cookie = Option.fromNullishOr(response.headers.get("set-cookie")).pipe(
+    Option.flatMap((header) => Option.fromUndefinedOr(header.split(";", 1)[0]))
+  );
+  assert(Option.isSome(cookie));
+  return { cookie: cookie.value, email, userId: body.user.id };
 });
