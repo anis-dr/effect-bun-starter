@@ -136,6 +136,7 @@ Start with `.env.example`:
 | `BETTER_AUTH_SECRET` | Yes | Replace the example value | Better Auth signing secret; minimum 32 characters |
 | `BETTER_AUTH_URL` | Yes | `http://localhost:3002` | API URL that serves the Better Auth routes |
 | `BETTER_AUTH_TRUSTED_ORIGIN` | No | `http://localhost:3000` | Web origin trusted by Better Auth and the only origin API CORS allows |
+| `BETTER_AUTH_COOKIE_DOMAIN` | With sibling subdomains | Commented out | Parent domain the API and web hosts share (`example.com`); the session cookie is set on it. See [Deployment topology](#deployment-topology) |
 | `PORT` | No | `3002` | API listen port |
 | `VITE_API_URL` | No | `http://localhost:3002` | API base URL used by the web client |
 | `SUPERADMIN_EMAIL` | No | `owner@example.com` (commented out) | The one account that appoints and removes admins; unset, there is no superadmin |
@@ -214,6 +215,14 @@ node apps/web/.output/server/index.mjs
 The web output under `apps/web/.output/` is a self-contained Nitro server. Configure production secrets, database connectivity, CORS origins, email, the uploads directory and URL, and the OTLP endpoint in the deployment environment rather than committing an `.env` file.
 
 For host-specific Nitro deployment presets, see the [Nitro deployment documentation](https://v3.nitro.build/deploy).
+
+### Deployment topology
+
+The browser signs in against the API directly, and the web server renders signed-in pages by forwarding the browser's cookies to the API. The session cookie must therefore reach both hosts:
+
+- **Same host, different ports** (development, `localhost:3000` and `localhost:3002`): cookies ignore ports, so this works with no setting.
+- **Sibling subdomains** (production, `app.example.com` and `api.example.com`): set `BETTER_AUTH_COOKIE_DOMAIN=example.com`. The API then sets the session cookie on `example.com`, and the web server receives it. The API refuses to start when the domain is not both hosts' parent.
+- **Unrelated domains** are not supported: the web server would never see the session.
 
 ## Conventions
 

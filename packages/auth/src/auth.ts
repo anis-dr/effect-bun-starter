@@ -58,6 +58,7 @@ const makeAuth = Effect.gen(function* makeAuth() {
   // services so its spans and logs join the app's tracing.
   const context = yield* Effect.context<never>();
   const auth = betterAuth({
+    advanced: { crossSubDomainCookies: config.crossSubDomainCookies },
     baseURL: config.baseURL,
     database: drizzleAdapter(db, {
       provider: "pg",
