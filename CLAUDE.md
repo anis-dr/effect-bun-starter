@@ -1,8 +1,8 @@
 # Effect Bun Starter Agent Instructions
 
-## Conventions
+## Coding Standards
 
-Before writing or reviewing code, read [CONVENTIONS.md](CONVENTIONS.md): every rule this repo follows (code, naming, web, work), one line each, with its reason and what enforces it.
+Before writing or reviewing code, read [CODING_STANDARDS.md](CODING_STANDARDS.md): every rule this repo follows (code, naming, web, work), one line each, with its reason and what enforces it.
 
 ## Development Mode
 
@@ -26,7 +26,7 @@ Put files that are not meant to be committed in `.scratchpad/` at the repository
 
 Before writing HTML, CSS or client-side code, search the `modern-web-guidance` skill for the task, retrieve the matching guides, and check the finished code against them. Astryx components come first; the guides cover what Astryx leaves open.
 
-The rendering, styling and sizing rules are in [CONVENTIONS.md](CONVENTIONS.md#web) and [ADR 0015](docs/adr/0015-style-through-the-astryx-ladder.md).
+The rendering, styling and sizing rules are in [CODING_STANDARDS.md](CODING_STANDARDS.md#web) and [ADR 0015](docs/adr/0015-style-through-the-astryx-ladder.md).
 
 <!-- effect-solutions:start -->
 

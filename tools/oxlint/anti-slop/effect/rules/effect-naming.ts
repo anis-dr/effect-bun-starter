@@ -5,7 +5,7 @@ import { defineRule } from "@oxlint/plugins";
 
 import type { ESTree } from "@oxlint/plugins";
 
-// The naming rows of CONVENTIONS.md that a linter can check (ADR 0018).
+// The naming rows of CODING_STANDARDS.md that a linter can check (ADR 0018).
 
 /** `appLayer`, `pgClientLayer`, `testLayer`. */
 const LAYER_VALUE = /^[a-z][A-Za-z0-9]*Layer$/u;
@@ -117,7 +117,7 @@ export const effectNamingRule = defineRule({
 		type: "suggestion",
 		docs: {
 			description:
-				"Name Effect code the way Effect does: services, layers, errors, spans, config keys, atoms and files (CONVENTIONS.md, ADR 0018).",
+				"Name Effect code the way Effect does: services, layers, errors, spans, config keys, atoms and files (CODING_STANDARDS.md, ADR 0018).",
 		},
 		messages: {
 			layerValue:

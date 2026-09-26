@@ -10,4 +10,4 @@ What we measured (Effect `4.0.0-rc.117` source and the effect-solutions guides, 
 - **Spans.** `Effect.fn("<Module>.<operation>")`.
 - **Files.** Effect's library modules are PascalCase namespace files; that is a library style. App files stay kebab-case, named for what they hold.
 
-The rules, one line each, are in [CONVENTIONS.md](../../CONVENTIONS.md); `anti-slop-effect/effect-naming` enforces the ones a linter can check. Oxlint 1.85 has no configurable naming rule (no `naming-convention`, `id-match` or `filename-case`), so the rule is ours.
+The rules, one line each, are in [CODING_STANDARDS.md](../../CODING_STANDARDS.md); `anti-slop-effect/effect-naming` enforces the ones a linter can check. Oxlint 1.85 has no configurable naming rule (no `naming-convention`, `id-match` or `filename-case`), so the rule is ours.

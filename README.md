@@ -224,9 +224,9 @@ The browser signs in against the API directly, and the web server renders signed
 - **Sibling subdomains** (production, `app.example.com` and `api.example.com`): set `BETTER_AUTH_COOKIE_DOMAIN=example.com`. The API then sets the session cookie on `example.com`, and the web server receives it. The API refuses to start when the domain is not both hosts' parent.
 - **Unrelated domains** are not supported: the web server would never see the session.
 
-## Conventions
+## Coding Standards
 
-[`CONVENTIONS.md`](CONVENTIONS.md) lists every rule the repository follows (code, naming, web, work), one line each, with the reason and what enforces it: a lint rule, a test, or review. Agent instructions live in [`AGENTS.md`](AGENTS.md).
+[`CODING_STANDARDS.md`](CODING_STANDARDS.md) lists every rule the repository follows (code, naming, web, work), one line each, with the reason and what enforces it: a lint rule, a test, or review. The name is the one `/code-review` looks for. Agent instructions live in [`AGENTS.md`](AGENTS.md).
 
 ## Architecture decisions
 

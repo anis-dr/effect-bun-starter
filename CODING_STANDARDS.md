@@ -1,4 +1,4 @@
-# Conventions
+# Coding Standards
 
 The rules this repo follows, one line each. The link says why; **Enforced** says what catches a break (a lint rule, a test, or review). Decisions live in [docs/adr/](docs/adr/). Add a rule here when it is adopted and retire it here when it is dropped.
 
