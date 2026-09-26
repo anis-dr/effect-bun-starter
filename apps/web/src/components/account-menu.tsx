@@ -8,7 +8,7 @@ import { useAtomSet, useAtomSubscribe } from "@effect/atom-react";
 import { useMatch, useRouter } from "@tanstack/react-router";
 import { Boolean, Match, Option } from "effect";
 import { AsyncResult } from "effect/unstable/reactivity";
-import { LogOut, UserRound } from "lucide-react";
+import { LogOut, ShieldCheck, UserRound } from "lucide-react";
 import { useRef } from "react";
 
 import { signOutAtom } from "#lib/auth-client";
@@ -32,7 +32,8 @@ const accountIcon = (user: SignedIn["user"]) =>
 /**
  * The header's account control, icon only. Signed out, it opens sign-in.
  * Signed in, named after the account and showing its avatar when it has
- * one, it opens a menu with the account page and sign-out. The state comes
+ * one, it opens a menu with the account page, the admin area for admins,
+ * and sign-out. The state comes
  * from the `/$locale` loader, read on the server, so the first paint is
  * already right.
  */
@@ -77,7 +78,7 @@ export const AccountMenu = ({ locale }: { readonly locale: Locale }) => {
   );
 
   return Match.value(session).pipe(
-    Match.when({ signedIn: true }, ({ user }) => (
+    Match.when({ signedIn: true }, ({ role, user }) => (
       <DropdownMenu
         button={{
           icon: accountIcon(user),
@@ -93,6 +94,16 @@ export const AccountMenu = ({ locale }: { readonly locale: Locale }) => {
           label={copy.account}
           onClick={() => void router.navigate({ href: `/${locale}/account` })}
         />
+        {Option.getOrNull(
+          Option.liftPredicate(
+            <DropdownMenuItem
+              icon={ShieldCheck}
+              label={copy.admin}
+              onClick={() => void router.navigate({ href: `/${locale}/admin` })}
+            />,
+            () => role !== "member"
+          )
+        )}
         <DropdownMenuItem
           icon={LogOut}
           label={copy.signOut}

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocaleRouteImport } from './routes/$locale'
 import { Route as LocaleIndexRouteImport } from './routes/$locale.index'
 import { Route as LocaleAccountRouteImport } from './routes/$locale.account'
+import { Route as LocaleAdminRouteImport } from './routes/$locale.admin'
 import { Route as LocaleForgotPasswordRouteImport } from './routes/$locale.forgot-password'
 import { Route as LocaleResetPasswordRouteImport } from './routes/$locale.reset-password'
 import { Route as LocaleSignInRouteImport } from './routes/$locale.sign-in'
@@ -36,6 +37,11 @@ const LocaleIndexRoute = LocaleIndexRouteImport.update({
 const LocaleAccountRoute = LocaleAccountRouteImport.update({
   id: '/account',
   path: '/account',
+  getParentRoute: () => LocaleRoute,
+} as any)
+const LocaleAdminRoute = LocaleAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => LocaleRoute,
 } as any)
 const LocaleForgotPasswordRoute = LocaleForgotPasswordRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$locale': typeof LocaleRouteWithChildren
   '/$locale/account': typeof LocaleAccountRoute
+  '/$locale/admin': typeof LocaleAdminRoute
   '/$locale/forgot-password': typeof LocaleForgotPasswordRoute
   '/$locale/reset-password': typeof LocaleResetPasswordRoute
   '/$locale/sign-in': typeof LocaleSignInRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$locale/account': typeof LocaleAccountRoute
+  '/$locale/admin': typeof LocaleAdminRoute
   '/$locale/forgot-password': typeof LocaleForgotPasswordRoute
   '/$locale/reset-password': typeof LocaleResetPasswordRoute
   '/$locale/sign-in': typeof LocaleSignInRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$locale': typeof LocaleRouteWithChildren
   '/$locale/account': typeof LocaleAccountRoute
+  '/$locale/admin': typeof LocaleAdminRoute
   '/$locale/forgot-password': typeof LocaleForgotPasswordRoute
   '/$locale/reset-password': typeof LocaleResetPasswordRoute
   '/$locale/sign-in': typeof LocaleSignInRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$locale'
     | '/$locale/account'
+    | '/$locale/admin'
     | '/$locale/forgot-password'
     | '/$locale/reset-password'
     | '/$locale/sign-in'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$locale/account'
+    | '/$locale/admin'
     | '/$locale/forgot-password'
     | '/$locale/reset-password'
     | '/$locale/sign-in'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$locale'
     | '/$locale/account'
+    | '/$locale/admin'
     | '/$locale/forgot-password'
     | '/$locale/reset-password'
     | '/$locale/sign-in'
@@ -157,6 +169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAccountRouteImport
       parentRoute: typeof LocaleRoute
     }
+    '/$locale/admin': {
+      id: '/$locale/admin'
+      path: '/admin'
+      fullPath: '/$locale/admin'
+      preLoaderRoute: typeof LocaleAdminRouteImport
+      parentRoute: typeof LocaleRoute
+    }
     '/$locale/forgot-password': {
       id: '/$locale/forgot-password'
       path: '/forgot-password'
@@ -190,6 +209,7 @@ declare module '@tanstack/react-router' {
 
 interface LocaleRouteChildren {
   LocaleAccountRoute: typeof LocaleAccountRoute
+  LocaleAdminRoute: typeof LocaleAdminRoute
   LocaleForgotPasswordRoute: typeof LocaleForgotPasswordRoute
   LocaleResetPasswordRoute: typeof LocaleResetPasswordRoute
   LocaleSignInRoute: typeof LocaleSignInRoute
@@ -198,6 +218,7 @@ interface LocaleRouteChildren {
 
 const LocaleRouteChildren: LocaleRouteChildren = {
   LocaleAccountRoute: LocaleAccountRoute,
+  LocaleAdminRoute: LocaleAdminRoute,
   LocaleForgotPasswordRoute: LocaleForgotPasswordRoute,
   LocaleResetPasswordRoute: LocaleResetPasswordRoute,
   LocaleSignInRoute: LocaleSignInRoute,

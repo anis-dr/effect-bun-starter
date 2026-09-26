@@ -1,3 +1,4 @@
+import { Role } from "@effect-bun-starter/domain";
 import { redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Option, Schema } from "effect";
@@ -5,7 +6,7 @@ import { FetchHttpClient, HttpClient } from "effect/unstable/http";
 
 import type { Locale } from "../i18n";
 import { apiBaseUrl } from "./api-client";
-import { withCookie } from "./server-api";
+import { api, withCookie } from "./server-api";
 
 /** The signed-in account as Better Auth's get-session returns it; `image`
  * is the avatar's URL, or null without one. */
@@ -18,7 +19,7 @@ const User = Schema.Struct({
 
 export const Session = Schema.Union([
   Schema.Struct({ signedIn: Schema.Literal(false) }),
-  Schema.Struct({ signedIn: Schema.Literal(true), user: User }),
+  Schema.Struct({ role: Role, signedIn: Schema.Literal(true), user: User }),
 ]);
 export type Session = typeof Session.Type;
 export type SignedIn = Extract<Session, { readonly signedIn: true }>;
@@ -28,22 +29,37 @@ const SessionBody = Schema.NullOr(Schema.Struct({ user: User }));
 
 const signedOut: Session = { signedIn: false };
 
-/** The signed-in account (Better Auth's get-session), or signed out. An API
- * that can't answer reads as signed out rather than breaking the page. */
-const readSession = Effect.gen(function* () {
+// Better Auth's get-session: the signed-in user, or null.
+const readUser = Effect.gen(function* () {
   const client = HttpClient.mapRequest(
     yield* HttpClient.HttpClient,
     withCookie
   );
   const response = yield* client.get(`${apiBaseUrl}/api/auth/get-session`);
-  const body = yield* Schema.decodeUnknownEffect(SessionBody)(
-    yield* response.json
-  );
-  return Option.match(Option.fromNullOr(body), {
-    onNone: () => signedOut,
-    onSome: ({ user }): Session => ({ signedIn: true, user }),
-  });
+  return yield* Schema.decodeUnknownEffect(SessionBody)(yield* response.json);
+});
+
+// The account's role (`GET /admin/session`), asked alongside the user so the
+// page waits for one round trip. It answers 401 when signed out; any failure
+// reads as the least-privileged role.
+const readRole = api.pipe(
+  Effect.flatMap((client) => client.adminSession.me()),
+  Effect.map(({ role }) => role),
+  Effect.orElseSucceed((): Role => "member")
+);
+
+/** The signed-in account (Better Auth's get-session) and its role, or
+ * signed out. An API that can't answer reads as signed out rather than
+ * breaking the page. */
+const readSession = Effect.all([readUser, readRole], {
+  concurrency: "unbounded",
 }).pipe(
+  Effect.map(([body, role]) =>
+    Option.match(Option.fromNullOr(body), {
+      onNone: () => signedOut,
+      onSome: ({ user }): Session => ({ role, signedIn: true, user }),
+    })
+  ),
   Effect.orElseSucceed(() => signedOut),
   Effect.provide(FetchHttpClient.layer)
 );
