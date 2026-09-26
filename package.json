@@ -27,8 +27,8 @@
     "dev": "turbo dev",
     "format": "oxfmt --check .",
     "format:fix": "oxfmt .",
-    "lint": "ultracite check .",
-    "lint:fix": "ultracite fix .",
+    "lint": "ultracite check --type-aware .",
+    "lint:fix": "ultracite fix --type-aware .",
     "prepare": "effect-tsgo patch",
     "test": "turbo test",
     "typecheck": "turbo typecheck"
@@ -41,6 +41,7 @@
     "oxfmt": "^0.70.0",
     "oxlint": "1.85.0",
     "oxlint-plugin-effect": "0.12.1",
+    "oxlint-tsgolint": "7.0.2003",
     "turbo": "^2.11.4",
     "typescript": "catalog:",
     "ultracite": "^7.12.0"

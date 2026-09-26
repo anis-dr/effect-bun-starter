@@ -137,7 +137,15 @@ export default defineConfig({
       },
     },
   ],
-  plugins: ["typescript", "oxc", "import", "promise", "react", "jsx-a11y"],
+  plugins: [
+    "typescript",
+    "oxc",
+    "import",
+    "promise",
+    "react",
+    "jsx-a11y",
+    "unicorn",
+  ],
   rules: {
     ...effectRecommended,
     ...effectStyleRules,

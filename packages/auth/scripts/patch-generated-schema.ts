@@ -1,6 +1,7 @@
 /// <reference types="bun" />
 
 import * as BunFileSystem from "@effect/platform-bun/BunFileSystem";
+import * as BunRuntime from "@effect/platform-bun/BunRuntime";
 import { Effect, FileSystem } from "effect";
 
 const file = "src/schema/auth-schema.ts";
@@ -30,4 +31,4 @@ const patchSchema = Effect.gen(function* () {
 });
 
 const program = patchSchema.pipe(Effect.provide(BunFileSystem.layer));
-Effect.runPromise(program);
+BunRuntime.runMain(program);
