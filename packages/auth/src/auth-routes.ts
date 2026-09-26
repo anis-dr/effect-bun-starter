@@ -3,7 +3,7 @@ import { HttpEffect, HttpRouter } from "effect/unstable/http";
 
 import { Auth } from "./auth.js";
 
-export const AuthRoutesLive = Layer.unwrap(
+export const authRoutesLayer = Layer.unwrap(
   Auth.pipe(
     Effect.map(({ handler }) =>
       HttpRouter.add("*", "/api/auth/*", HttpEffect.fromWebHandler(handler))

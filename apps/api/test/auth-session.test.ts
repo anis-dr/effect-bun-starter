@@ -1,14 +1,14 @@
-import { Auth, AuthLive } from "@effect-bun-starter/auth";
+import { Auth } from "@effect-bun-starter/auth";
 import { assert, layer } from "@effect/vitest";
 import { Effect, Layer, Option, Schema } from "effect";
 
-import { TestApp, TestAppLive, decodeJson, encodeJson } from "./test-app.js";
+import { TestApp, decodeJson, encodeJson } from "./test-app.js";
 
 const SignUpResponse = Schema.Struct({
   user: Schema.Struct({ id: Schema.String }),
 });
 
-layer(Layer.merge(TestAppLive, AuthLive))((it) => {
+layer(Layer.merge(TestApp.layer, Auth.layer))((it) => {
   it.effect("keeps web-origin sessions usable across the API", () =>
     Effect.gen(function* webOriginSession() {
       const app = yield* TestApp;

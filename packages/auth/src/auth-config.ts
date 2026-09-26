@@ -1,7 +1,7 @@
 import { Config, Effect, Redacted, Schema } from "effect";
 
-export class InvalidAuthConfig extends Schema.TaggedError<InvalidAuthConfig>()(
-  "InvalidAuthConfig",
+export class AuthConfigError extends Schema.TaggedError<AuthConfigError>()(
+  "AuthConfigError",
   {
     message: Schema.String,
   }
@@ -28,7 +28,7 @@ export const loadAuthConfig = Effect.gen(function* loadAuthConfig() {
   ]);
 
   if (secret.length < 32) {
-    return yield* new InvalidAuthConfig({
+    return yield* new AuthConfigError({
       message: "BETTER_AUTH_SECRET must be at least 32 characters",
     });
   }

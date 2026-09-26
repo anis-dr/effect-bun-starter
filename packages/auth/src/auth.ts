@@ -28,15 +28,6 @@ export class AuthDatabaseOpenError extends Schema.TaggedError<AuthDatabaseOpenEr
   "AuthDatabaseOpenError",
   { cause: Schema.Defect() }
 ) {}
-export class Auth extends Context.Service<
-  Auth,
-  {
-    readonly handler: (request: Request) => Promise<Response>;
-    readonly userId: (
-      headers: Headers
-    ) => Effect.Effect<Option.Option<AuthenticatedUserId>, AuthReadError>;
-  }
->()("@effect-bun-starter/auth/Auth") {}
 
 const adapterSchema = { account, session, user, verification };
 
@@ -89,4 +80,15 @@ const makeAuth = Effect.gen(function* makeAuth() {
   };
 });
 
-export const AuthLive = Layer.effect(Auth, makeAuth);
+export class Auth extends Context.Service<
+  Auth,
+  {
+    readonly handler: (request: Request) => Promise<Response>;
+    readonly userId: (
+      headers: Headers
+    ) => Effect.Effect<Option.Option<AuthenticatedUserId>, AuthReadError>;
+  }
+>()("@effect-bun-starter/auth/Auth") {
+  /** better-auth over `DATABASE_URL`. */
+  static readonly layer = Layer.effect(Auth, makeAuth);
+}

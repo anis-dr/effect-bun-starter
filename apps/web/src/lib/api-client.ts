@@ -15,7 +15,7 @@ export const apiBaseUrl = Effect.runSync(
   )
 );
 
-const BrowserHttpClient = FetchHttpClient.layer.pipe(
+const browserHttpClientLayer = FetchHttpClient.layer.pipe(
   Layer.provide(
     Layer.merge(
       Layer.succeed(FetchHttpClient.RequestInit, {
@@ -27,8 +27,11 @@ const BrowserHttpClient = FetchHttpClient.layer.pipe(
   )
 );
 
-export class ApiClient extends AtomHttpApi.Service<ApiClient>()("ApiClient", {
-  api: Api,
-  baseUrl: apiBaseUrl,
-  httpClient: BrowserHttpClient,
-}) {}
+export class ApiClient extends AtomHttpApi.Service<ApiClient>()(
+  "@effect-bun-starter/web/ApiClient",
+  {
+    api: Api,
+    baseUrl: apiBaseUrl,
+    httpClient: browserHttpClientLayer,
+  }
+) {}

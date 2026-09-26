@@ -2,7 +2,7 @@ import { Api } from "@effect-bun-starter/domain";
 import { Effect } from "effect";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
-export const HealthLive = HttpApiBuilder.group(Api, "system", (handlers) =>
+export const systemLayer = HttpApiBuilder.group(Api, "system", (handlers) =>
   handlers
     .handle("health", () =>
       Effect.succeed({

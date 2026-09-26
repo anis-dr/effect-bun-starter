@@ -149,6 +149,7 @@ export default defineConfig({
   rules: {
     ...effectRecommended,
     ...effectStyleRules,
+    "anti-slop-effect/effect-naming": "error",
     "anti-slop-effect/no-service-constructor-imports": "error",
     "anti-slop/no-reflect-apply": "error",
     "anti-slop/no-reflect-get": "error",

@@ -1,16 +1,16 @@
-import { AuthLive, AuthRoutesLive } from "@effect-bun-starter/auth";
+import { Auth, authRoutesLayer } from "@effect-bun-starter/auth";
 import { Api } from "@effect-bun-starter/domain";
 import { Layer } from "effect";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
-import { StoresLive } from "./public/stores/stores-live.js";
-import { HealthLive } from "./public/system/health-live.js";
+import { storesLayer } from "./public/stores/stores-handlers.js";
+import { systemLayer } from "./public/system/system-handlers.js";
 
-export const ApiLive = HttpApiBuilder.layer(Api).pipe(
-  Layer.provide(HealthLive),
-  Layer.provide(StoresLive)
+export const apiLayer = HttpApiBuilder.layer(Api).pipe(
+  Layer.provide(systemLayer),
+  Layer.provide(storesLayer)
 );
 
-export const AppLive = Layer.merge(ApiLive, AuthRoutesLive).pipe(
-  Layer.provideMerge(AuthLive)
+export const appLayer = Layer.merge(apiLayer, authRoutesLayer).pipe(
+  Layer.provideMerge(Auth.layer)
 );

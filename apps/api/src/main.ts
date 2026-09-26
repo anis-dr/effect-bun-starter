@@ -1,5 +1,5 @@
 import { trustedOriginConfig } from "@effect-bun-starter/auth";
-import { DatabaseLive } from "@effect-bun-starter/database";
+import { Database } from "@effect-bun-starter/database";
 import * as NodeSdk from "@effect/opentelemetry/NodeSdk";
 import { BunHttpServer, BunRuntime } from "@effect/platform-bun";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
@@ -18,9 +18,9 @@ import {
   HttpServerRequest,
 } from "effect/unstable/http";
 
-import { AppLive } from "./api.js";
+import { appLayer } from "./api.js";
 
-const HttpLive = AppLive.pipe(
+const httpLayer = appLayer.pipe(
   // The web app's origin, the same one better-auth trusts.
   Layer.provide(
     Layer.unwrap(
@@ -90,7 +90,7 @@ const requestLogger = HttpMiddleware.make((httpApp) =>
   })
 );
 
-const ObservabilityLive = NodeSdk.layer(
+const observabilityLayer = NodeSdk.layer(
   Effect.gen(function* observabilityConfig() {
     const otlpEndpoint = yield* Config.String(
       "OTEL_EXPORTER_OTLP_ENDPOINT"
@@ -131,13 +131,13 @@ const ObservabilityLive = NodeSdk.layer(
 const main = Effect.gen(function* main() {
   const port = yield* Config.Port("PORT").pipe(Config.withDefault(3002));
 
-  return yield* HttpRouter.serve(HttpLive, {
+  return yield* HttpRouter.serve(httpLayer, {
     disableLogger: true,
     middleware: requestLogger,
   }).pipe(
     Layer.provide(BunHttpServer.layer({ port })),
-    Layer.provide(DatabaseLive),
-    Layer.provide(ObservabilityLive),
+    Layer.provide(Database.layer),
+    Layer.provide(observabilityLayer),
     Layer.launch
   );
 });

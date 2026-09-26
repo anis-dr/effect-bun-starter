@@ -3,7 +3,7 @@ import { Api, StoresUnavailable } from "@effect-bun-starter/domain";
 import { Effect } from "effect";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
-export const StoresLive = HttpApiBuilder.group(Api, "stores", (handlers) =>
+export const storesLayer = HttpApiBuilder.group(Api, "stores", (handlers) =>
   handlers.handle("list", () =>
     Effect.gen(function* listStores() {
       const db = yield* Database;

@@ -6,11 +6,7 @@ export type DatabaseClient = PgDrizzle.EffectPgDatabase & {
   readonly $client: PgClient.PgClient;
 };
 
-export class Database extends Context.Service<Database, DatabaseClient>()(
-  "@effect-bun-starter/database/Database"
-) {}
-
-const PgClientLive = Layer.unwrap(
+const pgClientLayer = Layer.unwrap(
   Effect.gen(function* makePgClientLayer() {
     const url = yield* Config.Redacted("DATABASE_URL");
 
@@ -21,7 +17,12 @@ const PgClientLive = Layer.unwrap(
   })
 );
 
-export const DatabaseLive = Layer.effect(
-  Database,
-  PgDrizzle.make().pipe(Effect.provide(PgDrizzle.DefaultServices))
-).pipe(Layer.provide(PgClientLive));
+export class Database extends Context.Service<Database, DatabaseClient>()(
+  "@effect-bun-starter/database/Database"
+) {
+  /** Drizzle over `DATABASE_URL`. */
+  static readonly layer = Layer.effect(
+    Database,
+    PgDrizzle.make().pipe(Effect.provide(PgDrizzle.DefaultServices))
+  ).pipe(Layer.provide(pgClientLayer));
+}
