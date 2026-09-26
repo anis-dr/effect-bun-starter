@@ -7,18 +7,20 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import { cleanup, render } from "@testing-library/react";
-import { Effect, Layer, Option, Record as Rec } from "effect";
+import { Effect, Function, Layer, Option, Record as Rec } from "effect";
 import { HttpClient, HttpClientResponse } from "effect/unstable/http";
 import { HttpApiClient } from "effect/unstable/httpapi";
-import { Atom } from "effect/unstable/reactivity";
+import { Atom, Reactivity } from "effect/unstable/reactivity";
 import { createElement, type ReactElement } from "react";
+import { vi } from "vitest";
 
 import { ApiClient } from "../src/lib/api-client.js";
 
 /** The API's answers, by `"METHOD /path"`. */
 export type Routes = Readonly<Record<string, () => Response>>;
 
-/** The app's typed API client, over an API that answers from `routes`. */
+/** The app's typed API client, over an API that answers from `routes`, with
+ * the `Reactivity` every atom runtime carries (mutations invalidate by key). */
 const answeringLayer = (routes: Routes) =>
   Layer.effect(
     ApiClient,
@@ -36,7 +38,8 @@ const answeringLayer = (routes: Routes) =>
           })
         )
       )
-    )
+    ),
+    Layer.provideMerge(Reactivity.layer)
   );
 
 /**
@@ -47,6 +50,13 @@ export const renderPage = Effect.fn("TestPage.render")(function* (
   page: ReactElement,
   routes: Routes
 ) {
+  // jsdom has no media queries; dialogs ask whether motion is reduced.
+  vi.stubGlobal("matchMedia", (media: string) => ({
+    addEventListener: Function.constVoid,
+    matches: false,
+    media,
+    removeEventListener: Function.constVoid,
+  }));
   const router = createRouter({
     history: createMemoryHistory(),
     routeTree: createRootRoute({ component: () => page }),
@@ -66,6 +76,7 @@ export const renderPage = Effect.fn("TestPage.render")(function* (
     Effect.sync(() => {
       view.unmount();
       cleanup();
+      vi.unstubAllGlobals();
     })
   );
 });
