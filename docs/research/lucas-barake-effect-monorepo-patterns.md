@@ -24,13 +24,13 @@ The reference repo uses Effect v3 and split packages:
 - `@effect/platform-node`
 - `@effect/platform-browser`
 
-Effect Bun Starter uses Effect v4 beta. Copy the architecture and rules, not syntax.
+Effect Bun Starter uses the Effect v4 release candidate. Copy the architecture and rules, not syntax.
 
 Translation rules:
 
 - Use Effect Bun Starter's v4 import style, for example `effect/unstable/http`, `effect/unstable/httpapi`, and `effect/unstable/rpc` where applicable.
-- Replace `Effect.Service` and `Effect.Tag` service classes with v4 `ServiceMap.Service` plus explicit layers.
-- Replace `Schema.TaggedError<T>()(...)` with `Schema.TaggedErrorClass(...)`.
+- Replace `Effect.Service` and `Effect.Tag` service classes with v4 `Context.Service` plus static `layer` members (ADR 0018).
+- Keep `Schema.TaggedError<T>()(...)`; the Effect v4 release candidate uses that name again.
 - Prefer named `Effect.fn("Name")`; the reference repo often uses `Effect.fnUntraced`.
 - Do not copy `@effect/build-utils prepare-v2` package build setup unless Effect Bun Starter deliberately adopts Effect's package publishing template.
 
@@ -324,7 +324,7 @@ Reference files:
 
 Effect Bun Starter translation:
 
-- Use Effect v4 `Schema.TaggedErrorClass` for domain and HTTP errors.
+- Use Effect v4 `Schema.TaggedError` for domain and HTTP errors.
 - Keep JSON Schema only as interop output, not a parallel modeling source.
 
 ## Auth And Policy Rules
@@ -558,7 +558,7 @@ packages/domain
 apps/api
   src/api.ts                  # server Api wraps DomainApi
   src/main.ts                 # runtime/layer composition
-  src/public/*/*-live.ts      # HttpApiBuilder.group handlers
+  src/public/*/*-handlers.ts  # HttpApiBuilder.group handlers (ADR 0018)
   src/public/*/*-repository.ts# server-side repositories
 
 packages/database

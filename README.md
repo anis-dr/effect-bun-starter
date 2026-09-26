@@ -18,7 +18,7 @@ cd my-app
 
 ## Prerequisites
 
-- [Bun](https://bun.sh/) 1.3.14 or a compatible release
+- [Bun](https://bun.sh/) 1.4.2 or a compatible release
 - [Docker](https://docs.docker.com/get-docker/) with Docker Compose
 
 ## Quick start
@@ -89,7 +89,7 @@ Run these commands from the repository root:
 | `bun --filter @effect-bun-starter/database db:studio` | Open Drizzle Studio |
 | `bun run typecheck` | Typecheck source and tests across workspaces |
 | `bun run test` | Run all workspace tests |
-| `bun run lint` | Check lint rules and formatting through Ultracite |
+| `bun run lint` | Check type-aware lint rules and formatting through Ultracite |
 | `bun run format` | Check formatting through Oxfmt |
 | `bun run build` | Build the API and web applications |
 | `bun run lint:fix` | Apply supported lint fixes |
@@ -104,7 +104,7 @@ Start with `.env.example`:
 | `DATABASE_URL` | Yes | `postgres://postgres:postgres@localhost:5437/effect_bun_starter` | PostgreSQL connection used by the API, migrations, and database tests |
 | `BETTER_AUTH_SECRET` | Yes | Replace the example value | Better Auth signing secret; minimum 32 characters |
 | `BETTER_AUTH_URL` | Yes | `http://localhost:3002` | API URL that serves the Better Auth routes |
-| `BETTER_AUTH_TRUSTED_ORIGIN` | No | `http://localhost:3000` | Web origin allowed to call the Better Auth routes |
+| `BETTER_AUTH_TRUSTED_ORIGIN` | No | `http://localhost:3000` | Web origin trusted by Better Auth and the only origin API CORS allows |
 | `PORT` | No | `3002` | API listen port |
 | `VITE_API_URL` | No | `http://localhost:3002` | API base URL used by the web client |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | No | `http://127.0.0.1:27686` | OTLP HTTP collector base URL for server traces and logs |
@@ -114,7 +114,7 @@ Start with `.env.example`:
 | `VITE_OTEL_DEPLOYMENT_ENVIRONMENT` | No | `development` | Deployment environment recorded on browser traces |
 | `VITE_OTEL_SERVICE_VERSION` | No | `0.0.0` | Service version recorded on browser traces |
 
-The local web origin is allowed by the API CORS configuration, with credentials so browser sessions reach the API. Configure deployed origins before exposing the API publicly.
+API CORS allows `BETTER_AUTH_TRUSTED_ORIGIN`, with credentials so browser sessions reach the API. Set it to the deployed web origin before exposing the API publicly.
 
 ## Customize the starter
 
@@ -174,6 +174,26 @@ The web output under `apps/web/.output/` is a self-contained Nitro server. Confi
 
 For host-specific Nitro deployment presets, see the [Nitro deployment documentation](https://v3.nitro.build/deploy).
 
+## Conventions
+
+[`CONVENTIONS.md`](CONVENTIONS.md) lists every rule the repository follows (code, naming, web, work), one line each, with the reason and what enforces it: a lint rule, a test, or review. Agent instructions live in [`AGENTS.md`](AGENTS.md).
+
 ## Architecture decisions
 
-Reusable technical decisions live in [`docs/adr`](docs/adr). They explain the Effect HTTP contract, schema interoperability, Drizzle/PostgreSQL integration, Effect configuration, TypeScript project references, authentication, linting, and identifier choices.
+Reusable technical decisions live in [`docs/adr`](docs/adr):
+
+| ADR | Decision |
+| --- | --- |
+| [0001](docs/adr/0001-effect-rpc-and-http-transports.md) | Typed HTTP API contracts; RPC only for controlled transports |
+| [0003](docs/adr/0003-json-schema-as-schema-interop-bridge.md) | Effect Schema first; JSON Schema as the interop bridge |
+| [0004](docs/adr/0004-use-drizzle-effect-postgres.md) | Drizzle over Effect PostgreSQL |
+| [0005](docs/adr/0005-prefer-effect-fn-for-effectful-functions.md) | `Effect.fn` for named effectful functions |
+| [0006](docs/adr/0006-use-oxc-for-linting.md) | OXC for linting |
+| [0007](docs/adr/0007-use-better-auth.md) | Better Auth for authentication |
+| [0008](docs/adr/0008-use-effect-config-for-env.md) | Effect `Config` for environment variables |
+| [0009](docs/adr/0009-use-source-exports-with-project-references.md) | Source exports with declaration-only project references |
+| [0010](docs/adr/0010-use-uuidv7-for-public-ids.md) | UUIDv7 for public database ids |
+| [0011](docs/adr/0011-use-tanstack-form.md) | TanStack Form for forms |
+| [0014](docs/adr/0014-branch-with-effect-matchers.md) | Branch with Effect matchers |
+| [0016](docs/adr/0016-render-by-audience.md) | Public pages render on the server; signed-in areas may render in the browser |
+| [0018](docs/adr/0018-name-effect-code-the-way-effect-does.md) | Name Effect code the way Effect does |

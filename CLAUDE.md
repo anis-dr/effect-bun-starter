@@ -1,5 +1,9 @@
 # Effect Bun Starter Agent Instructions
 
+## Conventions
+
+Before writing or reviewing code, read [CONVENTIONS.md](CONVENTIONS.md): every rule this repo follows (code, naming, web, work), one line each, with its reason and what enforces it.
+
 ## Development Mode
 
 Use Ponytail mode for this project at full intensity.
@@ -9,6 +13,20 @@ Use Ponytail mode for this project at full intensity.
 - Do not add unrequested abstractions, avoidable dependencies, or boilerplate.
 - Mark intentional simplifications with a `ponytail:` comment.
 - Do not simplify away trust-boundary validation, data-loss prevention, security, accessibility basics, or explicit requirements.
+
+## Principles
+
+Before design, planning, implementation, refactoring, debugging, tests, delegation, or declaring work done, call the Skill tool with "principles" and read every reference whose line matches the task, in full. Name the principles that changed a decision in your reply. This applies to dispatched workers too.
+
+## Scratch Work
+
+Put files that are not meant to be committed in `.scratchpad/` at the repository root, one folder per task. Git ignores the folder. This covers probe scripts, spikes, drafts, captured output, screenshots and hand-offs between agents.
+
+## Web Work
+
+Before writing HTML, CSS or client-side code, search the `modern-web-guidance` skill for the task, retrieve the matching guides, and check the finished code against them. Astryx components come first; the guides cover what Astryx leaves open.
+
+The rendering rules are in [CONVENTIONS.md](CONVENTIONS.md#web).
 
 <!-- effect-solutions:start -->
 
