@@ -87,7 +87,6 @@ export const startBrowserTelemetry = () => {
       new FetchInstrumentation({
         ignoreUrls: [traceUrl, resolvedTraceUrl, /\/__tsd\//],
         propagateTraceHeaderCorsUrls: [apiUrlPattern],
-        semconvStabilityOptIn: "http",
       }),
     ],
   });
