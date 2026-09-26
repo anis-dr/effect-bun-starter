@@ -52,18 +52,20 @@ export class FileStorage extends Context.Service<
         yield* fs.makeDirectory(options.directory, { recursive: true });
 
         return FileStorage.of({
-          put: (key, bytes) =>
-            fs
-              .writeFile(path.join(options.directory, key), bytes)
-              .pipe(
-                Effect.mapError((cause) => new FileStorageError({ cause }))
-              ),
-          remove: (key) =>
-            fs
-              .remove(path.join(options.directory, key), { force: true })
-              .pipe(
-                Effect.mapError((cause) => new FileStorageError({ cause }))
-              ),
+          put: Effect.fn("FileStorage.put")(
+            function* (key: string, bytes: Uint8Array) {
+              yield* fs.writeFile(path.join(options.directory, key), bytes);
+            },
+            Effect.mapError((cause) => new FileStorageError({ cause }))
+          ),
+          remove: Effect.fn("FileStorage.remove")(
+            function* (key: string) {
+              yield* fs.remove(path.join(options.directory, key), {
+                force: true,
+              });
+            },
+            Effect.mapError((cause) => new FileStorageError({ cause }))
+          ),
           url: (key) => `${options.publicUrl}/${key}`,
         });
       })
