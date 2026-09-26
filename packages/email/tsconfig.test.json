@@ -1,0 +1,6 @@
+{
+  "extends": "@effect-bun-starter/typescript-config/test.json",
+  "compilerOptions": { "jsx": "react-jsx" },
+  "include": ["test/**/*.ts"],
+  "references": [{ "path": "./tsconfig.json" }]
+}

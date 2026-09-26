@@ -24,6 +24,8 @@
     "build": "turbo build",
     "astryx": "bun run --cwd apps/web astryx",
     "db:up": "docker compose up -d --wait database",
+    "mail:up": "docker compose up -d mail",
+    "email:dev": "bun run --cwd packages/email dev",
     "dev": "turbo dev",
     "format": "oxfmt --check .",
     "format:fix": "oxfmt .",

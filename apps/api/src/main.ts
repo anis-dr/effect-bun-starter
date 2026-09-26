@@ -1,5 +1,6 @@
 import { trustedOriginConfig } from "@effect-bun-starter/auth";
 import { Database } from "@effect-bun-starter/database";
+import { Mailer } from "@effect-bun-starter/email";
 import * as NodeSdk from "@effect/opentelemetry/NodeSdk";
 import { BunHttpServer, BunRuntime } from "@effect/platform-bun";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
@@ -137,6 +138,7 @@ const main = Effect.gen(function* main() {
   }).pipe(
     Layer.provide(BunHttpServer.layer({ port })),
     Layer.provide(Database.layer),
+    Layer.provide(Mailer.layerConfig),
     Layer.provide(observabilityLayer),
     Layer.launch
   );

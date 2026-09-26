@@ -13,6 +13,7 @@
     "@effect-bun-starter/auth": "workspace:*",
     "@effect-bun-starter/database": "workspace:*",
     "@effect-bun-starter/domain": "workspace:*",
+    "@effect-bun-starter/email": "workspace:*",
     "@effect/opentelemetry": "catalog:",
     "@effect/platform-bun": "catalog:",
     "@opentelemetry/api": "^1.9.1",

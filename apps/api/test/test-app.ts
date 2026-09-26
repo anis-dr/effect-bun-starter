@@ -1,4 +1,5 @@
 import { Database } from "@effect-bun-starter/database";
+import { Mailer, type RenderedEmail } from "@effect-bun-starter/email";
 import * as BunHttpServer from "@effect/platform-bun/BunHttpServer";
 import { assert } from "@effect/vitest";
 import { ConfigProvider, Context, Effect, Layer, Option, Schema } from "effect";
@@ -14,8 +15,25 @@ class TestAppOpenError extends Schema.TaggedError<TestAppOpenError>()(
 /** The account the test app treats as superadmin (`SUPERADMIN_EMAIL`). */
 export const testSuperadminEmail = "superadmin@test.example.com";
 
+/** Every email the test app sent, oldest first. */
+export const sentMail: Array<{
+  readonly email: RenderedEmail;
+  readonly to: string;
+}> = [];
+
+const recordingMailerLayer = Layer.succeed(
+  Mailer,
+  Mailer.of({
+    send: (to, email) =>
+      Effect.sync(() => {
+        sentMail.push({ email, to });
+      }),
+  })
+);
+
 const testAppLayer = appLayer.pipe(
   Layer.provideMerge(Database.layer),
+  Layer.provide(recordingMailerLayer),
   Layer.provide(BunHttpServer.layerHttpServices),
   Layer.provide(
     ConfigProvider.layerAdd(
