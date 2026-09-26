@@ -1,3 +1,7 @@
+# One project name, so every checkout and worktree of this repo reaches the same
+# containers (a worktree's directory name would otherwise start a second set).
+name: effect-bun-starter
+
 services:
   # glibc image, UTF-8 locale: pg_trgm only counts accented letters as word
   # characters under a UTF-8 LC_CTYPE, and glibc sorts like production hosts

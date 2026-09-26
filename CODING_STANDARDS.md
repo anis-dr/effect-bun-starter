@@ -64,4 +64,5 @@ The rules this repo follows, one line each. The link says why; **Enforced** says
 | Rule | Why | Enforced |
 | --- | --- | --- |
 | Uncommitted work (probes, drafts, screenshots, hand-offs) goes in `.scratchpad/<task>/`. | [AGENTS.md](AGENTS.md#scratch-work) | `.gitignore` |
+| Throwaway servers and databases come from `scripts/stack.sh up <name>`: its own database, free ports, every variable explicit. | An inherited `DATABASE_URL` beats `--env-file`, and an agent harness passes its repo's `.env` to every process it starts | the script refuses the main database |
 | `apps/api` tests run on Bun (`bun --bun … vitest run`), the runtime the API ships on; other packages' tests run on Node. | `apps/api/package.json` | `bun run test` |

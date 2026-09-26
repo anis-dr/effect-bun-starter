@@ -125,6 +125,10 @@ Run these commands from the repository root:
 | `bun run build` | Build the API and web applications |
 | `bun run lint:fix` | Apply supported lint fixes |
 | `bun run format:fix` | Format the repository |
+| `scripts/stack.sh up <name>` | Start a throwaway API and web stack on its own database and free ports |
+| `scripts/stack.sh down <name>` | Stop that stack and drop its database |
+
+`scripts/stack.sh` starts its servers from an empty environment plus the variables it sets, reading the rest from `.env`. An agent harness started in a repository auto-loads that repository's `.env`, so every process it launches inherits `DATABASE_URL`, and an inherited variable beats `bun --env-file`. Smoke runs that start servers by hand land on whichever database the harness loaded.
 
 ## Configuration
 
