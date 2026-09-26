@@ -109,6 +109,9 @@ const english = {
   pinging: "Pinging…",
   siteDescription:
     "An Effect, Bun and TanStack Start app with a typed API client.",
+  themeMatchSystem: "Match the system theme",
+  themeUseDark: "Use the dark theme",
+  themeUseLight: "Use the light theme",
 };
 
 type Messages = { readonly [Key in keyof typeof english]: string };
@@ -134,6 +137,9 @@ export const messages = {
     pinging: "Test en cours…",
     siteDescription:
       "Une application Effect, Bun et TanStack Start avec un client d’API typé.",
+    themeMatchSystem: "Suivre le thème du système",
+    themeUseDark: "Passer au thème sombre",
+    themeUseLight: "Passer au thème clair",
   },
 } satisfies Record<Locale, Messages>;
 

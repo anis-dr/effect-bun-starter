@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 
 import { type Locale, messages } from "../i18n";
 import { LanguageMenu } from "./language-menu";
+import { ThemeToggle } from "./theme-toggle";
 
 /** Every page's frame: the header (app name home link, then the page-wide
  * controls) above the page content. */
@@ -28,6 +29,7 @@ export const SiteShell = ({
           endContent={
             <HStack align="center" gap={1}>
               <LanguageMenu locale={locale} />
+              <ThemeToggle locale={locale} />
             </HStack>
           }
           heading={

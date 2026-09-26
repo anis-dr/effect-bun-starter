@@ -4,7 +4,10 @@ import {
 } from "@astryxdesign/core/i18n";
 import { LinkProvider } from "@astryxdesign/core/Link";
 import { Theme } from "@astryxdesign/core/theme";
+import { colorVars } from "@astryxdesign/core/theme/tokens.stylex";
 import { neutralTheme } from "@astryxdesign/theme-neutral/built";
+import { useAtomValue } from "@effect/atom-react";
+import * as stylex from "@stylexjs/stylex";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import {
   HeadContent,
@@ -18,7 +21,9 @@ import type { ReactNode } from "react";
 
 import { RouterLink } from "#components/router-link";
 import { NotFoundPage } from "#components/site-shell";
+import { chosenThemeAtom } from "#components/theme-toggle";
 import { siteOrigin } from "#lib/site-path";
+import { getThemeMode, pinnedScheme } from "#lib/theme-mode";
 
 import { astryxMessages } from "../astryx-messages";
 import {
@@ -41,15 +46,37 @@ const usePathLocale = (): Locale =>
     () => defaultLocale
   );
 
+// The canvas under everything, so overscroll and the first paint show the
+// theme's page colour instead of the browser's white.
+const styles = stylex.create({
+  canvas: {
+    backgroundColor: colorVars["--color-background-body"],
+    color: colorVars["--color-text-primary"],
+  },
+});
+
 const RootDocument = ({ children }: { children: ReactNode }) => {
   const locale = usePathLocale();
+  // The toggle's choice in this tab, else the cookie read at page load.
+  const loaded = Route.useLoaderData();
+  const mode = Option.getOrElse(useAtomValue(chosenThemeAtom), () => loaded);
+  // A pinned scheme is rendered on the server, so the first paint is right.
+  const pinned = Option.match(pinnedScheme(mode), {
+    onNone: () => ({}),
+    onSome: (scheme) => ({ "data-theme": scheme }),
+  });
   return (
-    <html dir={getLocaleDirection(locale)} lang={locale}>
+    <html
+      dir={getLocaleDirection(locale)}
+      lang={locale}
+      {...pinned}
+      {...stylex.props(styles.canvas)}
+    >
       <head>
         <HeadContent />
       </head>
       <body>
-        <Theme theme={neutralTheme}>
+        <Theme mode={mode} theme={neutralTheme}>
           {/* Astryx's own labels (skip link, dialogs, pagination…) in the
               page language; English keeps Astryx's catalog. */}
           <InternationalizationProvider
@@ -98,6 +125,7 @@ const languageLinks = (locale: Locale, rest: string, origin: string) => [
 ];
 
 export const Route = createRootRoute({
+  loader: () => getThemeMode(),
   head: ({ matches }) => {
     const leaf = Arr.last(matches);
     const pathLocale = Option.flatMap(leaf, (match) =>
@@ -136,6 +164,9 @@ export const Route = createRootRoute({
       meta: [
         { charSet: "utf-8" },
         { content: "width=device-width, initial-scale=1", name: "viewport" },
+        // Before any CSS: the browser paints its canvas and controls in the
+        // right scheme; `data-theme` on <html> narrows it once pinned.
+        { content: "light dark", name: "color-scheme" },
         {
           title: Boolean.match(isMissing, {
             onFalse: () => copy.appName,
