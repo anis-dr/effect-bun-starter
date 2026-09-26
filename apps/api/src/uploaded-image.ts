@@ -1,4 +1,8 @@
-import { Database, files } from "@effect-bun-starter/database";
+import {
+  Database,
+  files,
+  type WithSubqueryWithSelection,
+} from "@effect-bun-starter/database";
 import { Array, Crypto, Effect, Option } from "effect";
 
 import { FileStorage } from "./file-storage.js";
@@ -8,15 +12,27 @@ import { ImageProcessor } from "./image-processor.js";
 export const variantKey = (key: string, width: number) =>
   key.replace(/\.webp$/u, `-${width}.webp`);
 
+/** What `storeImage` hands to the statement that links the image: a `with`
+ * query inserting its `files` row, and the widest copy's key. */
+export interface StoredImage {
+  readonly file: WithSubqueryWithSelection<{ id: typeof files.id }, "file">;
+  readonly largestKey: string;
+}
+
 /**
- * Stores an uploaded image as `ImageProcessor` makes it: WebP, with copies at
- * `widths`. `file` is a `with` query inserting its `files` row, for the
- * statement that links it; if that statement fails, `removeStored` removes
- * the bytes again. `largestKey` is the widest copy's key.
+ * Stores an uploaded image as `ImageProcessor` makes it (WebP, with copies at
+ * `widths`), then runs `link`, the statement that points a row at it.
+ *
+ * Until `link` succeeds the bytes belong to this upload: a failure or an
+ * interruption, while storing or in `link`, removes them. `link` runs
+ * uninterruptibly: once its statement is sent it may commit, so it finishes,
+ * together with what it does after the commit (removing the bytes it
+ * replaced). Interruption waits for it instead of cutting it in half.
  */
-export const storeImage = Effect.fn("Image.store")(function* (
+export const storeImage = Effect.fn("Image.store")(function* <A, E, R>(
   bytes: Uint8Array,
-  widths: readonly number[]
+  widths: readonly number[],
+  link: (image: StoredImage) => Effect.Effect<A, E, R>
 ) {
   const db = yield* Database;
   const storage = yield* FileStorage;
@@ -29,17 +45,11 @@ export const storeImage = Effect.fn("Image.store")(function* (
     key: variantKey(key, copy.width),
   }));
   const stored = [{ bytes: original, key }, ...copyFiles];
-  const removeStored = Effect.forEach(
-    stored,
-    (file) => Effect.ignore(storage.remove(file.key)),
-    { discard: true }
+  const largestKey = Option.getOrElse(
+    Option.map(Array.last(copyFiles), (copy) => copy.key),
+    () => key
   );
-  yield* Effect.forEach(stored, (file) => storage.put(file.key, file.bytes), {
-    concurrency: 4,
-    discard: true,
-  }).pipe(Effect.tapError(() => removeStored));
-
-  const file = db.$with("file").as(
+  const file: StoredImage["file"] = db.$with("file").as(
     db
       .insert(files)
       .values({
@@ -49,11 +59,26 @@ export const storeImage = Effect.fn("Image.store")(function* (
       })
       .returning({ id: files.id })
   );
-  const largestKey = Option.getOrElse(
-    Option.map(Array.last(copyFiles), (copy) => copy.key),
-    () => key
+
+  return yield* Effect.uninterruptibleMask((restore) =>
+    restore(
+      Effect.forEach(stored, (each) => storage.put(each.key, each.bytes), {
+        concurrency: 4,
+        discard: true,
+      })
+    ).pipe(
+      Effect.andThen(link({ file, largestKey })),
+      Effect.onError(() =>
+        Effect.forEach(
+          stored,
+          (each) => Effect.ignore(storage.remove(each.key)),
+          {
+            discard: true,
+          }
+        )
+      )
+    )
   );
-  return { file, largestKey, removeStored };
 });
 
 /** Removes an image's bytes and copies once no row links them; bytes left

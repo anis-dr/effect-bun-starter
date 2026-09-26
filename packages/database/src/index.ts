@@ -4,3 +4,4 @@ export { admins, files, schema, stores, user } from "./schema/index.js";
 export { containsSearch, matchesSearch, rankSearch } from "./search.js";
 export { DatabaseSmoke } from "./smoke.js";
 export type { DatabaseClient } from "./database.js";
+export type { WithSubqueryWithSelection } from "drizzle-orm/pg-core";

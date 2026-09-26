@@ -9,15 +9,10 @@ import { maxImageBytes } from "@effect-bun-starter/domain";
 import { assert, layer } from "@effect/vitest";
 import { Effect, Layer, Option, Schema } from "effect";
 
-import { TestApp, decodeJson, signUp } from "./test-app.js";
+import { TestApp, decodeJson, pngBytes, signUp } from "./test-app.js";
 
 const AvatarResponse = Schema.Struct({ image: Schema.String });
 const ErrorResponse = Schema.Struct({ _tag: Schema.String });
-
-// A 200 × 200 PNG: narrower than the 256 px copy, so copies stop at 200.
-const pngBytes = Uint8Array.fromBase64(
-  "iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAIAAAAiOjnJAAABeElEQVR42u3SMQ0AAAgEsReGMIQhEBMMDE2q4HKpHjgXCTAWxsJYYCyMhbHAWBgLY4GxMBbGAmNhLIwFxsJYGAuMhbEwFhgLY2EsMBbGwlhgLIyFscBYGAtjgbEwFsYCY2EsjAXGwlgYC4yFsTAWGAtjYSwwFsbCWGAsjIWxwFgYC2OBsTAWxgJjYSyMBcbCWBgLjIWxMBYYC2NhLDAWxsJYYCyMhbHAWBgLY4GxMBbGAmNhLIyFsVTAWBgLY4GxMBbGAmNhLIwFxsJYGAuMhbEwFhgLY2EsMBbGwlhgLIyFscBYGAtjgbEwFsYCY2EsjAXGwlgYC4yFsTAWGAtjYSwwFsbCWGAsjIWxwFgYC2OBsTAWxgJjYSyMBcbCWBgLjIWxMBYYC2NhLDAWxsJYYCyMhbHAWBgLY4GxMBbGAmNhLIwFxsJYGAtjqYCxMBbGAmNhLIwFxsJYGAuMhbEwFhgLY2EsMBbGwlhgLIyFscBYGAtjgbH4ZgEwIsbWNHjppQAAAABJRU5ErkJggg=="
-);
 
 const avatarUrl = "http://localhost:3002/account/avatar";
 
@@ -75,10 +70,14 @@ layer(Layer.merge(TestApp.layer, Database.layer))((it) => {
           Effect.orDie(db.delete(user).where(inArray(user.email, [email])))
         );
         const { cookie, userId } = yield* signUp(email);
-        const status = (url: string) =>
-          Effect.map(
-            app.request(new Request(url)),
-            (response) => response.status
+        // HTTP statuses of an avatar's original and copies, from the URL of
+        // its largest copy (`<id>-200.webp`).
+        const statuses = (image: string) =>
+          Effect.forEach([".webp", "-128.webp", "-200.webp"], (suffix) =>
+            Effect.map(
+              app.request(new Request(image.replace(/-200\.webp$/u, suffix))),
+              (response) => response.status
+            )
           );
 
         assert.deepStrictEqual(
@@ -127,9 +126,10 @@ layer(Layer.merge(TestApp.layer, Database.layer))((it) => {
           second
         );
         assert.notStrictEqual(secondImage, firstImage);
-        assert.strictEqual(yield* status(secondImage), 200);
+        // Stored: the WebP original and its 128 and 200 px copies.
+        assert.deepStrictEqual(yield* statuses(secondImage), [200, 200, 200]);
         // The replaced avatar's bytes and file row are gone.
-        assert.strictEqual(yield* status(firstImage), 404);
+        assert.deepStrictEqual(yield* statuses(firstImage), [404, 404, 404]);
         assert.strictEqual(
           (yield* db
             .select({ id: files.id })
@@ -142,7 +142,7 @@ layer(Layer.merge(TestApp.layer, Database.layer))((it) => {
           new Request(avatarUrl, { headers: { cookie }, method: "DELETE" })
         );
         assert.strictEqual(removed.status, 204);
-        assert.strictEqual(yield* status(secondImage), 404);
+        assert.deepStrictEqual(yield* statuses(secondImage), [404, 404, 404]);
         assert.deepStrictEqual(yield* accountImage(userId), {
           image: Option.none(),
           key: Option.none(),

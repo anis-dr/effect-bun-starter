@@ -8,7 +8,11 @@ import { Effect, FileSystem, Option } from "effect";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { FileStorage } from "../../file-storage.js";
-import { removeImageBytes, storeImage } from "../../uploaded-image.js";
+import {
+  removeImageBytes,
+  storeImage,
+  type StoredImage,
+} from "../../uploaded-image.js";
 
 /** Avatar copies: 128 px for lists at 2x, 256 px for a profile at 2x. */
 const avatarWidths = [128, 256];
@@ -38,13 +42,12 @@ const lockedAvatar = (db: Database["Service"], userId: string) =>
       .for("update", { of: user })
   );
 
-type StoredImage = Effect.Success<ReturnType<typeof storeImage>>;
-
 /**
  * Points the account at a new avatar, or at none, in one statement that reads
  * the avatar it replaces under a row lock (`lockedAvatar`). The trigger
  * `user_delete_avatar_file` deletes the replaced file's row; its bytes go
- * here. A failed update removes the new image's bytes again.
+ * here, so callers run it uninterruptibly: the update and the removal of the
+ * bytes it replaced happen together or not at all.
  */
 const replaceAvatar = Effect.fn("AccountAvatar.replace")(function* (
   next: Option.Option<{
@@ -76,15 +79,7 @@ const replaceAvatar = Effect.fn("AccountAvatar.replace")(function* (
       key: previous.key,
       variantWidths: previous.variantWidths,
     })
-    .pipe(
-      Effect.tapError(() =>
-        Option.match(next, {
-          onNone: () => Effect.void,
-          onSome: ({ stored }) => stored.removeStored,
-        })
-      ),
-      Effect.catch(unavailable)
-    );
+    .pipe(Effect.catch(unavailable));
   yield* Option.fromUndefinedOr(replaced).pipe(
     Option.flatMap(({ key, variantWidths }) =>
       Option.all({
@@ -108,21 +103,28 @@ export const accountAvatarLayer = HttpApiBuilder.group(
           const bytes = yield* fs
             .readFile(payload.image.path)
             .pipe(Effect.catch(unavailable));
-          const stored = yield* storeImage(bytes, avatarWidths).pipe(
+          // Until the update links the new image, `storeImage` removes its
+          // bytes on any failure or interruption.
+          // ponytail: the URL is written once; rewrite `user.image` if UPLOADS_URL ever moves.
+          const image = yield* storeImage(bytes, avatarWidths, (stored) =>
+            Effect.succeed(storage.url(stored.largestKey)).pipe(
+              Effect.tap((url) =>
+                replaceAvatar(Option.some({ image: url, stored }))
+              )
+            )
+          ).pipe(
             Effect.catchTags({
               FileStorageError: unavailable,
               PlatformError: unavailable,
             })
           );
-          // ponytail: the URL is written once; rewrite `user.image` if UPLOADS_URL ever moves.
-          const image = storage.url(stored.largestKey);
-          yield* replaceAvatar(Option.some({ image, stored }));
           return { image };
         }).pipe(Effect.withSpan("AccountAvatar.set"))
       )
       .handle("remove", () =>
-        Effect.gen(function* removeAvatar() {
-          yield* replaceAvatar(Option.none());
-        }).pipe(Effect.withSpan("AccountAvatar.remove"))
+        replaceAvatar(Option.none()).pipe(
+          Effect.uninterruptible,
+          Effect.withSpan("AccountAvatar.remove")
+        )
       )
 );

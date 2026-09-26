@@ -22,6 +22,11 @@ class TestAppOpenError extends Schema.TaggedError<TestAppOpenError>()(
   { cause: Schema.Defect() }
 ) {}
 
+// A 200 × 200 PNG: narrower than the 256 px copy, so copies stop at 200.
+export const pngBytes = Uint8Array.fromBase64(
+  "iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAIAAAAiOjnJAAABeElEQVR42u3SMQ0AAAgEsReGMIQhEBMMDE2q4HKpHjgXCTAWxsJYYCyMhbHAWBgLY4GxMBbGAmNhLIwFxsJYGAuMhbEwFhgLY2EsMBbGwlhgLIyFscBYGAtjgbEwFsYCY2EsjAXGwlgYC4yFsTAWGAtjYSwwFsbCWGAsjIWxwFgYC2OBsTAWxgJjYSyMBcbCWBgLjIWxMBYYC2NhLDAWxsJYYCyMhbHAWBgLY4GxMBbGAmNhLIyFsVTAWBgLY4GxMBbGAmNhLIwFxsJYGAuMhbEwFhgLY2EsMBbGwlhgLIyFscBYGAtjgbEwFsYCY2EsjAXGwlgYC4yFsTAWGAtjYSwwFsbCWGAsjIWxwFgYC2OBsTAWxgJjYSyMBcbCWBgLjIWxMBYYC2NhLDAWxsJYYCyMhbHAWBgLY4GxMBbGAmNhLIwFxsJYGAtjqYCxMBbGAmNhLIwFxsJYGAuMhbEwFhgLY2EsMBbGwlhgLIyFscBYGAtjgbH4ZgEwIsbWNHjppQAAAABJRU5ErkJggg=="
+);
+
 /** The account the test app treats as superadmin (`SUPERADMIN_EMAIL`). */
 export const testSuperadminEmail = "superadmin@test.example.com";
 
