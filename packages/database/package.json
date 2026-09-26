@@ -19,6 +19,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
+    "@effect-bun-starter/domain": "workspace:*",
     "@effect/sql-pg": "catalog:",
     "drizzle-orm": "catalog:",
     "effect": "catalog:"

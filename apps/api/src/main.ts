@@ -1,7 +1,8 @@
 import { trustedOriginConfig } from "@effect-bun-starter/auth";
 import { Database } from "@effect-bun-starter/database";
+import { Mailer } from "@effect-bun-starter/email";
 import * as NodeSdk from "@effect/opentelemetry/NodeSdk";
-import { BunHttpServer, BunRuntime } from "@effect/platform-bun";
+import { BunHttpServer, BunRuntime, BunServices } from "@effect/platform-bun";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { BatchLogRecordProcessor } from "@opentelemetry/sdk-logs";
@@ -19,6 +20,8 @@ import {
 } from "effect/unstable/http";
 
 import { appLayer } from "./api.js";
+import { FileStorage, uploadsRouteLayer } from "./file-storage.js";
+import { ImageProcessor } from "./image-processor.js";
 
 const httpLayer = appLayer.pipe(
   // The web app's origin, the same one better-auth trusts.
@@ -32,7 +35,12 @@ const httpLayer = appLayer.pipe(
         })
       )
     )
-  )
+  ),
+  Layer.provide(uploadsRouteLayer)
+);
+
+const fileStorageLayer = FileStorage.layerConfig.pipe(
+  Layer.provide(BunServices.layer)
 );
 
 const requestLogger = HttpMiddleware.make((httpApp) =>
@@ -135,8 +143,15 @@ const main = Effect.gen(function* main() {
     disableLogger: true,
     middleware: requestLogger,
   }).pipe(
-    Layer.provide(BunHttpServer.layer({ port })),
+    // Bun refuses larger bodies before they are read; the image endpoint
+    // answers its own, smaller limit (`maxImageBytes`) with a typed error.
+    Layer.provide(
+      BunHttpServer.layer({ maxRequestBodySize: 6 * 1024 * 1024, port })
+    ),
     Layer.provide(Database.layer),
+    Layer.provide(Mailer.layerConfig),
+    Layer.provide(fileStorageLayer),
+    Layer.provide(ImageProcessor.layerBun),
     Layer.provide(observabilityLayer),
     Layer.launch
   );

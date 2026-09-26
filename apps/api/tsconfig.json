@@ -8,6 +8,7 @@
   "references": [
     { "path": "../../packages/auth" },
     { "path": "../../packages/domain" },
-    { "path": "../../packages/database" }
+    { "path": "../../packages/database" },
+    { "path": "../../packages/email" }
   ]
 }

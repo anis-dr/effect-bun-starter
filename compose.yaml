@@ -1,12 +1,17 @@
 services:
+  # glibc image, UTF-8 locale: pg_trgm only counts accented letters as word
+  # characters under a UTF-8 LC_CTYPE, and glibc sorts like production hosts
+  # (Alpine's musl sorts bytewise). Extensions come from migrations.
+  # See docs/adr/0017-search-by-folded-trigram-similarity.md.
   database:
-    image: postgres:18-alpine
+    image: postgres:18
     ports:
       - "5437:5432"
     environment:
       POSTGRES_DB: effect_bun_starter
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: --locale-provider=libc --locale=en_US.UTF-8
     volumes:
       - database-data:/var/lib/postgresql
     healthcheck:
@@ -14,6 +19,14 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  # Local inbox for password-reset and other account email: SMTP on 1025,
+  # web UI on http://localhost:8025.
+  mail:
+    image: axllent/mailpit:v1.29
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 
 volumes:
   database-data:

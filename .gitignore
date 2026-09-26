@@ -12,3 +12,6 @@ dist/
 
 # Library sources cloned for agents to read
 .agent-sources
+
+# Local files (FileStorage filesystem adapter)
+uploads/

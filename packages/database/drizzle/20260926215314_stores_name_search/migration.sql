@@ -1,0 +1,1 @@
+CREATE INDEX "stores_name_search_idx" ON "stores" USING gin (public.search_text("name") gin_trgm_ops);

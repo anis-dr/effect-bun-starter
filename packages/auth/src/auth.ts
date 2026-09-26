@@ -1,3 +1,4 @@
+import { Mailer, renderResetPasswordEmail } from "@effect-bun-starter/email";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -13,6 +14,7 @@ import {
 import { Pool } from "pg";
 
 import { loadAuthConfig } from "./auth-config.js";
+import { localeOfResetLink } from "./reset-password-link.js";
 import { account, session, user, verification } from "./schema/auth-schema.js";
 
 export class AuthReadError extends Schema.TaggedError<AuthReadError>()(
@@ -48,6 +50,13 @@ const makeAuth = Effect.gen(function* makeAuth() {
   const config = yield* loadAuthConfig;
   const databaseUrl = yield* Config.Redacted("DATABASE_URL");
   const db = yield* openAuthDatabase(databaseUrl);
+  const mailer = yield* Mailer;
+  const appName = yield* Config.String("APP_NAME").pipe(
+    Config.withDefault("App")
+  );
+  // Better Auth calls back into plain promises; run mail with the layer's
+  // services so its spans and logs join the app's tracing.
+  const context = yield* Effect.context<never>();
   const auth = betterAuth({
     baseURL: config.baseURL,
     database: drizzleAdapter(db, {
@@ -57,6 +66,27 @@ const makeAuth = Effect.gen(function* makeAuth() {
     }),
     emailAndPassword: {
       enabled: true,
+      // A reset proves control of the email; end every other session.
+      revokeSessionsOnPasswordReset: true,
+      // Sent in the background: awaiting it would let response time reveal
+      // whether an account exists (Better Auth's advice). A failure is
+      // logged; the page tells everyone the same thing.
+      sendResetPassword: ({ url, user: account }) =>
+        Effect.runPromiseWith(context)(
+          renderResetPasswordEmail({
+            appName,
+            locale: localeOfResetLink(url),
+            name: account.name,
+            url,
+          }).pipe(
+            Effect.flatMap((email) => mailer.send(account.email, email)),
+            Effect.catchCause((cause) =>
+              Effect.logError("Reset-password email failed", cause)
+            ),
+            Effect.forkDetach,
+            Effect.asVoid
+          )
+        ),
     },
     secret: config.secret,
     trustedOrigins: config.trustedOrigins,
@@ -89,6 +119,6 @@ export class Auth extends Context.Service<
     ) => Effect.Effect<Option.Option<AuthenticatedUserId>, AuthReadError>;
   }
 >()("@effect-bun-starter/auth/Auth") {
-  /** better-auth over `DATABASE_URL`. */
+  /** better-auth over `DATABASE_URL`, mailing through the provided Mailer. */
   static readonly layer = Layer.effect(Auth, makeAuth);
 }

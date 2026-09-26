@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@effect-bun-starter/database": "workspace:*",
+    "@effect-bun-starter/email": "workspace:*",
     "better-auth": "^1.7.6",
     "drizzle-orm": "catalog:",
     "effect": "catalog:",

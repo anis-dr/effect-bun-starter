@@ -1,0 +1,26 @@
+diff --git a/dist/effect/index.d.mts b/dist/effect/index.d.mts
+index d81f456e3f74dcd4367dd6ebf5087231bd146165..a89eda3b707129b67792fc4ba971807ef475d3ba 100644
+--- a/dist/effect/index.d.mts
++++ b/dist/effect/index.d.mts
+@@ -17,7 +17,7 @@ export interface PermixOptions {
+  * @link https://permix.letstri.dev/docs/integrations/effect
+  */
+ export declare function createPermix<D extends Definition>(options?: PermixOptions): {
+-  Tag: Context.Tag<Permix<D>, Permix<D>>;
++  Tag: Context.Service<Permix<D>, Permix<D>>;
+   layer: (rules?: Rules<D>) => Layer.Layer<Permix<D>, never, never>;
+   layerSetup: <E, R>(rules: Effect.Effect<Rules<D>, E, R>) => Layer.Layer<Permix<D>, E, R>;
+   setup: (rules: Rules<D>) => Effect.Effect<void, never, Permix<D>>;
+diff --git a/dist/effect/index.mjs b/dist/effect/index.mjs
+index 3544bde3fd772f016560a0fce9b543b301744170..e658a75e934294ee44e34ed16e591020f6a39a29 100644
+--- a/dist/effect/index.mjs
++++ b/dist/effect/index.mjs
+@@ -12,7 +12,7 @@ let counter = 0;
+ */
+ function createPermix(options = {}) {
+ 	const id = options.id ?? `permix/effect#${counter++}`;
+-	const Tag = Context.GenericTag(id);
++	const Tag = Context.Service(id);
+ 	function layer(rules) {
+ 		return Layer.sync(Tag, () => createPermix$1(rules));
+ 	}

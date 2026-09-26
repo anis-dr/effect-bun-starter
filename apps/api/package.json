@@ -6,13 +6,14 @@
     "build": "bun build ./src/main.ts --outdir ./dist --target bun",
     "dev": "bun --env-file=../../.env --watch ./src/main.ts",
     "start": "bun --env-file=../../.env ./src/main.ts",
-    "test": "bun --env-file=../../.env vitest run",
+    "test": "bun --bun --env-file=../../.env vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
     "@effect-bun-starter/auth": "workspace:*",
     "@effect-bun-starter/database": "workspace:*",
     "@effect-bun-starter/domain": "workspace:*",
+    "@effect-bun-starter/email": "workspace:*",
     "@effect/opentelemetry": "catalog:",
     "@effect/platform-bun": "catalog:",
     "@opentelemetry/api": "^1.9.1",

@@ -1,5 +1,9 @@
 {
   "extends": "@effect-bun-starter/typescript-config/test.json",
   "include": ["test/**/*.ts"],
-  "references": [{ "path": "./tsconfig.json" }, { "path": "../database" }]
+  "references": [
+    { "path": "./tsconfig.json" },
+    { "path": "../database" },
+    { "path": "../email" }
+  ]
 }
