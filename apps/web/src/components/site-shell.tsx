@@ -6,6 +6,7 @@ import { TopNav, TopNavHeading } from "@astryxdesign/core/TopNav";
 import type { ReactNode } from "react";
 
 import { type Locale, messages } from "../i18n";
+import { AccountMenu } from "./account-menu";
 import { LanguageMenu } from "./language-menu";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -28,6 +29,7 @@ export const SiteShell = ({
         <TopNav
           endContent={
             <HStack align="center" gap={1}>
+              <AccountMenu locale={locale} />
               <LanguageMenu locale={locale} />
               <ThemeToggle locale={locale} />
             </HStack>

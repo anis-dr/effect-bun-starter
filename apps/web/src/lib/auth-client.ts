@@ -1,5 +1,6 @@
 import { createAuthClient } from "better-auth/react";
 import { Cause, Effect, Option, Schema } from "effect";
+import { Atom } from "effect/unstable/reactivity";
 
 import type { Copy } from "../i18n";
 import { apiBaseUrl } from "./api-client";
@@ -90,3 +91,10 @@ export const authFailureMessage = (
       onSome: (code) => copy[refusalCopy[code]],
     })
   );
+
+/** Sign out; the header re-reads the account on success. */
+export const signOutAtom = Atom.fn(
+  Effect.fn("Account.signOut")(function* () {
+    yield* authCall(() => authClient.signOut());
+  })
+);

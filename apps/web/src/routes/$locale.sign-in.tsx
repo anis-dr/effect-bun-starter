@@ -9,7 +9,7 @@ import { TextInput } from "@astryxdesign/core/TextInput";
 import { VStack } from "@astryxdesign/core/VStack";
 import { useAtom, useAtomSubscribe } from "@effect/atom-react";
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { Effect, Match, Option, Schema } from "effect";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
 import { useMemo, useRef } from "react";
@@ -34,6 +34,7 @@ import {
   inputAttributes,
   schemaValidator,
 } from "#lib/form";
+import { getSession, type Session } from "#lib/session-state";
 import { encodedSitePath, SitePath } from "#lib/site-path";
 
 import { type Copy, documentTitle, type Locale, messages } from "../i18n";
@@ -157,6 +158,13 @@ const afterSignIn = (
     onSome: encodedSitePath,
   });
 
+/** Already signed in: go on to `href` instead. */
+const leaveWhenSignedIn = (href: string) => (session: Session) =>
+  Match.value(session).pipe(
+    Match.when({ signedIn: true }, () => redirect({ href, throw: true })),
+    Match.orElse(() => session)
+  );
+
 const emptyAccount = { email: "", name: "", password: "" };
 
 /** Sign-in and sign-up. The mode lives in the URL (`?mode=signUp`), so it
@@ -175,9 +183,30 @@ const Authentication = ({
   const router = useRouter();
   const navigate = Route.useNavigate();
   const { redirect: next } = Route.useSearch();
+  // Signed in: read the header's account again, then go on. The page
+  // navigates itself: a redirect from its loader during the reload would cut
+  // the account read short, and the header would stay signed out.
   useAtomSubscribe(authenticateAtom, (result) => {
     if (AsyncResult.isSuccess(result)) {
-      void router.navigate({ href: afterSignIn(locale, next), replace: true });
+      void Effect.runPromise(
+        Effect.promise(() =>
+          // `sync`: wait for the new account, not revalidate in the
+          // background while the next page shows the old one.
+          router.invalidate({
+            filter: (match) => match.routeId === "/$locale",
+            sync: true,
+          })
+        ).pipe(
+          Effect.andThen(() =>
+            Effect.promise(() =>
+              router.navigate({
+                href: afterSignIn(locale, next),
+                replace: true,
+              })
+            )
+          )
+        )
+      );
     }
   });
   const validators = useMemo(
@@ -351,8 +380,22 @@ const SignIn = () => {
   );
 };
 
+/** A visitor who is already signed in is sent on at once; one who signs in
+ * here is sent on by the form. */
 export const Route = createFileRoute("/$locale/sign-in")({
   component: SignIn,
+  loaderDeps: ({ search }) => ({ redirect: search.redirect }),
+  // Only on arrival: the form's own reload after signing in must not
+  // redirect under it.
+  shouldReload: ({ cause }) => cause === "enter",
+  loader: ({ context, deps }) =>
+    Effect.runPromise(
+      Effect.promise(() => getSession()).pipe(
+        Effect.map(
+          leaveWhenSignedIn(afterSignIn(context.locale, deps.redirect))
+        )
+      )
+    ),
   head: ({ match }) =>
     documentTitle(
       match.context.locale,

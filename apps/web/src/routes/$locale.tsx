@@ -1,6 +1,8 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { Option } from "effect";
 
+import { getSession } from "#lib/session-state";
+
 import { isLocale } from "../i18n";
 
 // The one place a path's locale is parsed: pages read the typed
@@ -12,4 +14,8 @@ export const Route = createFileRoute("/$locale")({
       () => notFound()
     ),
   }),
+  // The header's account, read on the server once per page load; signing in
+  // or out invalidates it, which reads it again.
+  loader: () => getSession(),
+  staleTime: Number.POSITIVE_INFINITY,
 });

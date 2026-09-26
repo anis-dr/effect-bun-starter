@@ -92,6 +92,7 @@ export const localeNames = {
 } satisfies Record<Locale, string>;
 
 const english = {
+  account: "Account",
   accountName: "Name",
   accountNamePlaceholder: "Your full name",
   accountNameRequired: "Enter your name.",
@@ -156,6 +157,7 @@ const english = {
   signIn: "Sign in",
   signInAction: "Sign in",
   signInDescription: "Good to see you again.",
+  signOut: "Sign out",
   siteDescription:
     "An Effect, Bun and TanStack Start app with a typed API client.",
   themeMatchSystem: "Match the system theme",
@@ -169,6 +171,7 @@ export type Copy = Messages;
 export const messages = {
   en: english,
   fr: {
+    account: "Compte",
     accountName: "Nom",
     accountNamePlaceholder: "Votre nom complet",
     accountNameRequired: "Saisissez votre nom.",
@@ -236,6 +239,7 @@ export const messages = {
     signIn: "Connexion",
     signInAction: "Se connecter",
     signInDescription: "Ravi de vous revoir.",
+    signOut: "Se déconnecter",
     siteDescription:
       "Une application Effect, Bun et TanStack Start avec un client d’API typé.",
     themeMatchSystem: "Suivre le thème du système",
