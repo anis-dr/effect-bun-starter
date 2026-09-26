@@ -37,6 +37,22 @@
     "typecheck": {
       "dependsOn": ["^build"],
       "outputs": ["*.tsbuildinfo", ".tsbuild/**"]
+    },
+    "@effect-bun-starter/auth#typecheck": {
+      "dependsOn": ["^build", "build"],
+      "outputs": ["*.tsbuildinfo", ".tsbuild/**"]
+    },
+    "@effect-bun-starter/database#typecheck": {
+      "dependsOn": ["^build", "build"],
+      "outputs": ["*.tsbuildinfo", ".tsbuild/**"]
+    },
+    "@effect-bun-starter/domain#typecheck": {
+      "dependsOn": ["^build", "build"],
+      "outputs": ["*.tsbuildinfo", ".tsbuild/**"]
+    },
+    "@effect-bun-starter/email#typecheck": {
+      "dependsOn": ["^build", "build"],
+      "outputs": ["*.tsbuildinfo", ".tsbuild/**"]
     }
   }
 }
