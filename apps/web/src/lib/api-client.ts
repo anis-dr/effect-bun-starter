@@ -3,7 +3,7 @@ import { Config, ConfigProvider, Effect, Layer } from "effect";
 import { FetchHttpClient, HttpClient } from "effect/unstable/http";
 import { AtomHttpApi } from "effect/unstable/reactivity";
 
-const apiBaseUrlConfig = Config.string("VITE_API_URL").pipe(
+const apiBaseUrlConfig = Config.String("VITE_API_URL").pipe(
   Config.withDefault("http://localhost:3002")
 );
 

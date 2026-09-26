@@ -15,7 +15,7 @@ import { Pool } from "pg";
 import { loadAuthConfig } from "./auth-config.js";
 import { account, session, user, verification } from "./schema/auth-schema.js";
 
-export class AuthReadError extends Schema.TaggedErrorClass<AuthReadError>()(
+export class AuthReadError extends Schema.TaggedError<AuthReadError>()(
   "AuthReadError",
   {
     cause: Schema.Defect(),
@@ -24,7 +24,7 @@ export class AuthReadError extends Schema.TaggedErrorClass<AuthReadError>()(
 
 export type AuthenticatedUserId = string;
 
-export class AuthDatabaseOpenError extends Schema.TaggedErrorClass<AuthDatabaseOpenError>()(
+export class AuthDatabaseOpenError extends Schema.TaggedError<AuthDatabaseOpenError>()(
   "AuthDatabaseOpenError",
   { cause: Schema.Defect() }
 ) {}
@@ -55,7 +55,7 @@ function openAuthDatabase(databaseUrl: Redacted.Redacted<string>) {
 
 const makeAuth = Effect.gen(function* makeAuth() {
   const config = yield* loadAuthConfig;
-  const databaseUrl = yield* Config.redacted("DATABASE_URL");
+  const databaseUrl = yield* Config.Redacted("DATABASE_URL");
   const db = yield* openAuthDatabase(databaseUrl);
   const auth = betterAuth({
     baseURL: config.baseURL,

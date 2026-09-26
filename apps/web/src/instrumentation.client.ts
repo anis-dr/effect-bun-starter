@@ -36,25 +36,25 @@ export const startBrowserTelemetry = () => {
   const configProvider = ConfigProvider.fromUnknown(import.meta.env);
 
   const traceUrl = Effect.runSync(
-    Config.string("VITE_OTEL_EXPORTER_OTLP_TRACES_URL").pipe(
+    Config.String("VITE_OTEL_EXPORTER_OTLP_TRACES_URL").pipe(
       Config.withDefault("/api/otel/v1/traces"),
       Effect.provideService(ConfigProvider.ConfigProvider, configProvider)
     )
   );
   const apiUrl = Effect.runSync(
-    Config.string("VITE_API_URL").pipe(
+    Config.String("VITE_API_URL").pipe(
       Config.withDefault("http://localhost:3002"),
       Effect.provideService(ConfigProvider.ConfigProvider, configProvider)
     )
   ).replace(/\/$/, "");
   const deploymentEnvironment = Effect.runSync(
-    Config.string("VITE_OTEL_DEPLOYMENT_ENVIRONMENT").pipe(
+    Config.String("VITE_OTEL_DEPLOYMENT_ENVIRONMENT").pipe(
       Config.withDefault("development"),
       Effect.provideService(ConfigProvider.ConfigProvider, configProvider)
     )
   );
   const serviceVersion = Effect.runSync(
-    Config.string("VITE_OTEL_SERVICE_VERSION").pipe(
+    Config.String("VITE_OTEL_SERVICE_VERSION").pipe(
       Config.withDefault("0.0.0"),
       Effect.provideService(ConfigProvider.ConfigProvider, configProvider)
     )

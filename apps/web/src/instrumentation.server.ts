@@ -22,17 +22,17 @@ if (!("__effectBunStarterWebOtelSdk" in globalThis)) {
 
 if (Option.isNone(globalThis.__effectBunStarterWebOtelSdk)) {
   const otlpEndpoint = Effect.runSync(
-    Config.string("OTEL_EXPORTER_OTLP_ENDPOINT").pipe(
+    Config.String("OTEL_EXPORTER_OTLP_ENDPOINT").pipe(
       Config.withDefault("http://127.0.0.1:27686")
     )
   ).replace(/\/$/, "");
   const deploymentEnvironment = Effect.runSync(
-    Config.string("OTEL_DEPLOYMENT_ENVIRONMENT").pipe(
+    Config.String("OTEL_DEPLOYMENT_ENVIRONMENT").pipe(
       Config.withDefault("development")
     )
   );
   const serviceVersion = Effect.runSync(
-    Config.string("OTEL_SERVICE_VERSION").pipe(Config.withDefault("0.0.0"))
+    Config.String("OTEL_SERVICE_VERSION").pipe(Config.withDefault("0.0.0"))
   );
   const otlpTraceUrl = `${otlpEndpoint}/v1/traces`;
   const otlpTraceEndpoint = new URL(otlpTraceUrl);

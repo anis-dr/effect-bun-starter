@@ -87,13 +87,13 @@ const requestLogger = HttpMiddleware.make((httpApp) =>
 
 const ObservabilityLive = NodeSdk.layer(
   Effect.gen(function* observabilityConfig() {
-    const otlpEndpoint = yield* Config.string(
+    const otlpEndpoint = yield* Config.String(
       "OTEL_EXPORTER_OTLP_ENDPOINT"
     ).pipe(Config.withDefault("http://127.0.0.1:27686"));
-    const deploymentEnvironment = yield* Config.string(
+    const deploymentEnvironment = yield* Config.String(
       "OTEL_DEPLOYMENT_ENVIRONMENT"
     ).pipe(Config.withDefault("development"));
-    const serviceVersion = yield* Config.string("OTEL_SERVICE_VERSION").pipe(
+    const serviceVersion = yield* Config.String("OTEL_SERVICE_VERSION").pipe(
       Config.withDefault("0.0.0")
     );
     const otlpBaseUrl = otlpEndpoint.replace(/\/$/, "");
@@ -124,7 +124,7 @@ const ObservabilityLive = NodeSdk.layer(
 );
 
 const main = Effect.gen(function* main() {
-  const port = yield* Config.port("PORT").pipe(Config.withDefault(3002));
+  const port = yield* Config.Port("PORT").pipe(Config.withDefault(3002));
 
   return yield* HttpRouter.serve(HttpLive, {
     disableLogger: true,

@@ -1,18 +1,18 @@
 import { Config, Effect, Redacted, Schema } from "effect";
 
-export class InvalidAuthConfig extends Schema.TaggedErrorClass<InvalidAuthConfig>()(
+export class InvalidAuthConfig extends Schema.TaggedError<InvalidAuthConfig>()(
   "InvalidAuthConfig",
   {
     message: Schema.String,
   }
 ) {}
 
-const authSecretConfig = Config.redacted("BETTER_AUTH_SECRET").pipe(
+const authSecretConfig = Config.Redacted("BETTER_AUTH_SECRET").pipe(
   Config.map(Redacted.value)
 );
 
-const baseURLConfig = Config.url("BETTER_AUTH_URL").pipe(Config.map(String));
-const trustedOriginConfig = Config.url("BETTER_AUTH_TRUSTED_ORIGIN").pipe(
+const baseURLConfig = Config.URL("BETTER_AUTH_URL").pipe(Config.map(String));
+const trustedOriginConfig = Config.URL("BETTER_AUTH_TRUSTED_ORIGIN").pipe(
   Config.withDefault(new URL("http://localhost:3000")),
   Config.map((url) => url.origin)
 );

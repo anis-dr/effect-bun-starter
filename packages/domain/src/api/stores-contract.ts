@@ -5,7 +5,7 @@ import {
   HttpApiSchema,
 } from "effect/unstable/httpapi";
 
-export class StoresUnavailable extends Schema.TaggedErrorClass<StoresUnavailable>()(
+export class StoresUnavailable extends Schema.TaggedError<StoresUnavailable>()(
   "StoresUnavailable",
   {
     message: Schema.String,

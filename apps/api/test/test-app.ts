@@ -5,7 +5,7 @@ import { HttpRouter } from "effect/unstable/http";
 
 import { AppLive } from "../src/api.js";
 
-class TestAppOpenError extends Schema.TaggedErrorClass<TestAppOpenError>()(
+class TestAppOpenError extends Schema.TaggedError<TestAppOpenError>()(
   "TestAppOpenError",
   { cause: Schema.Defect() }
 ) {}
@@ -39,7 +39,9 @@ const makeTestApp = Effect.acquireRelease(acquireApp, ({ dispose }) =>
 
 export const TestAppLive = Layer.effect(TestApp, makeTestApp);
 
-export const encodeJson = Schema.encodeSync(Schema.UnknownFromJsonString);
+export const encodeJson = Schema.encodeSync(
+  Schema.fromJsonString(Schema.Unknown)
+);
 
 export const decodeJson = Effect.fn("TestApp.decodeJson")(function* <A, I, R>(
   schema: Schema.Codec<A, I, R>,

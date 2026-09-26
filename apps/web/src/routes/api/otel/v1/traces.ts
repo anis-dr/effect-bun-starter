@@ -8,7 +8,7 @@ import {
 
 const getTraceUrl = () =>
   `${Effect.runSync(
-    Config.string("OTEL_EXPORTER_OTLP_ENDPOINT").pipe(
+    Config.String("OTEL_EXPORTER_OTLP_ENDPOINT").pipe(
       Config.withDefault("http://127.0.0.1:27686")
     )
   ).replace(/\/$/, "")}/v1/traces`;

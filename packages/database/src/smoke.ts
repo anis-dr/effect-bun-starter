@@ -9,7 +9,7 @@ interface SmokeResult extends Record<string, unknown> {
 
 const check = Effect.fn("DatabaseSmoke.check")(function* checkDatabase() {
   const db = yield* Database;
-  const rows = yield* db.execute<SmokeResult>(sql`SELECT 1 AS ok`);
+  const rows = yield* db.execute<SmokeResult>(sql`SELECT 1 AS ok`, "objects");
   const [first] = rows;
 
   if (first?.ok !== 1) {

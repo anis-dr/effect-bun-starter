@@ -12,7 +12,7 @@ export class Database extends Context.Service<Database, DatabaseClient>()(
 
 const PgClientLive = Layer.unwrap(
   Effect.gen(function* makePgClientLayer() {
-    const url = yield* Config.redacted("DATABASE_URL");
+    const url = yield* Config.Redacted("DATABASE_URL");
 
     return PgClient.layer({
       applicationName: "effect-bun-starter-api",

@@ -21,7 +21,7 @@
     "@astryxdesign/core": "0.1.8",
     "@astryxdesign/theme-neutral": "0.1.8",
     "@effect-bun-starter/domain": "workspace:*",
-    "@effect/atom-react": "4.0.0-beta.97",
+    "@effect/atom-react": "4.0.0-rc.117",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/api-logs": "^0.220.0",
     "@opentelemetry/auto-instrumentations-node": "^0.78.0",
@@ -62,7 +62,7 @@
     "jsdom": "^28.1.0",
     "typescript": "catalog:",
     "vite": "^8.1.4",
-    "vitest": "^4.1.10"
+    "vitest": "^5.0.2"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

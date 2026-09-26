@@ -98,7 +98,7 @@ export const handleTracingRequest: RequestHandler = function ({
         Effect.sync(() => {
           const exception = Option.liftPredicate(
             defect,
-            Schema.is(Schema.Error())
+            Schema.is(Schema.ErrorInstance())
           );
           const message = Option.match(exception, {
             onNone: () => String(defect),
