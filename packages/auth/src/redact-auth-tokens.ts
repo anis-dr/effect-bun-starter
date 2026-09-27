@@ -1,3 +1,5 @@
+import { Boolean } from "effect";
+
 /**
  * `url` (a URL, a path or a bare query string) with Better Auth's link
  * credentials hidden, for logs and traces: the reset link carries its token
@@ -15,11 +17,11 @@ export const redactAuthTokens = (url: string) =>
       path +
       query
         .split("&")
-        .map((parameter) => {
-          if (new URLSearchParams(parameter).has("token")) {
-            return parameter.replace(/=.*/su, "=REDACTED");
-          }
-          return parameter;
-        })
+        .map((parameter) =>
+          Boolean.match(new URLSearchParams(parameter).has("token"), {
+            onFalse: () => parameter,
+            onTrue: () => parameter.replace(/=.*/su, "=REDACTED"),
+          })
+        )
         .join("&")
   );
