@@ -140,7 +140,7 @@ Start with `.env.example`:
 | `BETTER_AUTH_SECRET` | Yes | Replace the example value | Better Auth signing secret; minimum 32 characters |
 | `BETTER_AUTH_URL` | Yes | `http://localhost:3002` | API URL that serves the Better Auth routes |
 | `BETTER_AUTH_TRUSTED_ORIGIN` | No | `http://localhost:3000` | Web origin trusted by Better Auth and the only origin API CORS allows |
-| `BETTER_AUTH_COOKIE_DOMAIN` | With sibling subdomains | Commented out | Parent domain the API and web hosts share (`example.com`); the session cookie is set on it. See [Deployment topology](#deployment-topology) |
+| `BETTER_AUTH_COOKIE_DOMAIN` | With sibling subdomains | Commented out | Parent domain the API and web hosts share (`example.com`); the session cookie is set on it. It must be a registrable domain: browsers drop cookies set on a public suffix such as `co.uk` or `com`, and the API does not check this. See [Deployment topology](#deployment-topology) |
 | `PORT` | No | `3002` | API listen port |
 | `VITE_API_URL` | No | `http://localhost:3002` | API base URL used by the web client |
 | `SUPERADMIN_EMAIL` | No | `owner@example.com` (commented out) | The one account that appoints and removes admins; unset, there is no superadmin |
