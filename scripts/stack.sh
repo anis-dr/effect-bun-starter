@@ -42,6 +42,9 @@ sql() {
     "const sql = new Bun.SQL(process.env.ADMIN_URL); const argv = process.argv.slice(1); $1; await sql.close();" \
     "${@:2}"
 }
+db_exists() {
+  sql 'const [row] = await sql`select count(*)::int as n from pg_database where datname = ${argv[0]}`; console.log(row.n)' "$db"
+}
 drop_db() {
   if [[ "$db" != "${main_db}_${name}" || "$db" == "$main_db" ]]; then
     echo "refusing to drop $db" >&2
@@ -49,15 +52,23 @@ drop_db() {
   fi
   sql 'await sql.unsafe(`drop database if exists "${argv[0].replaceAll("\"", "\"\"")}" with (force)`)' "$db"
 }
+stop_processes() {
+  for pid in $(cat "$dir"/*.pid 2>/dev/null); do kill "$pid" 2>/dev/null || true; done
+  rm -f "$dir"/*.pid
+}
 
 if [[ "$command" == "down" ]]; then
-  for pid in $(cat "$dir"/*.pid 2>/dev/null); do kill "$pid" 2>/dev/null || true; done
+  stop_processes
   drop_db
   rm -rf "$dir"
   echo "down: $db"
   exit 0
 fi
 [[ "$command" == "up" ]] || { echo "unknown command: $command" >&2; exit 2; }
+if compgen -G "$dir/*.pid" >/dev/null || [[ "$(db_exists)" != 0 ]]; then
+  echo "refusing: stack $name exists; run scripts/stack.sh down $name first" >&2
+  exit 1
+fi
 
 free_port() {
   local port
@@ -73,8 +84,20 @@ web="http://localhost:$web_port"
 
 rm -rf "$dir"
 mkdir -p "$dir/uploads"
-drop_db
+# A failed or interrupted start stops what it launched and drops the
+# database it created; the logs stay for diagnosis.
+started=0
+cleanup() {
+  if [[ "$started" == 1 ]]; then
+    stop_processes
+    drop_db
+    echo "up failed: stopped $name and dropped $db (logs in $dir)" >&2
+  fi
+}
+trap cleanup EXIT
+trap 'exit 130' INT TERM
 sql 'await sql.unsafe(`create database "${argv[0].replaceAll("\"", "\"\"")}"`)' "$db"
+started=1
 (cd "$root/packages/database" && "${clean_env[@]}" DATABASE_URL="$url" bunx drizzle-kit migrate >"$dir/migrate.log" 2>&1)
 
 wait_for() {
@@ -102,3 +125,4 @@ echo "api: $api"
 if [[ -f "$dir/web.pid" ]]; then echo "web: $web"; fi
 echo "db:  $db"
 echo "logs: $dir"
+started=0
